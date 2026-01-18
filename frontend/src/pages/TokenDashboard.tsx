@@ -43,6 +43,26 @@ const ERC20_ABI = [
     inputs: [],
     outputs: [{ type: 'uint256' }],
   },
+  {
+    name: 'approve',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [{ type: 'bool' }],
+  },
+  {
+    name: 'allowance',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+    ],
+    outputs: [{ type: 'uint256' }],
+  },
 ] as const
 
 const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD' as const
@@ -141,6 +161,34 @@ export function TokenDashboard() {
       ? [token.id, parseEther(amount)]
       : undefined,
   })
+
+  // Check allowance for selling
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: tokenAddress,
+    abi: ERC20_ABI,
+    functionName: 'allowance',
+    args: userAddress ? [userAddress, PUMP_FUD_ADDRESS] : undefined,
+  })
+
+  const needsApproval = useMemo(() => {
+    if (activeTab !== 'sell' || !amount || !allowance) return false
+    try {
+      const amountBigInt = parseEther(amount)
+      return allowance < amountBigInt
+    } catch {
+      return false
+    }
+  }, [activeTab, amount, allowance])
+
+  const handleApprove = () => {
+    if (!tokenAddress || !amount) return
+    writeContract({
+      address: tokenAddress,
+      abi: ERC20_ABI,
+      functionName: 'approve',
+      args: [PUMP_FUD_ADDRESS, parseEther(amount)],
+    })
+  }
 
   const handleTrade = () => {
     if (!amount || !token) return

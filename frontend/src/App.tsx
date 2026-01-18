@@ -147,7 +147,6 @@ function AppContent() {
 
           <Routes>
             <Route path="/token/:address" element={<TokenPage />} />
-            <Route path="/dashboard/:tokenId" element={<TokenDashboard />} />
             <Route path="/swap" element={<SwapPage />} />
             <Route path="/livestreams" element={<LivestreamsPage />} />
             <Route path="/terminal" element={<HomePage />} />

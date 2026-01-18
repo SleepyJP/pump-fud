@@ -1,0 +1,23 @@
+# CLAUDE NOTES - DO NOT CHANGE WITHOUT PERMISSION
+
+## CRITICAL RULES
+1. NEVER change URLs, domains, or deployments unless explicitly told to
+2. NEVER redeploy without explicit permission
+3. Ask before making any infrastructure changes
+
+## PUMP.FUD Platform URLs
+- Vercel Project: frontend
+- Project ID: prj_Jmfi6Im7aGfys91w017276FWsz8h
+
+## Contract Addresses
+- PumpFud: 0x7e65383639d8418E826a78a2f5C784cd4Bdb92D7
+- Owner: 0x61D8adC8A10AE0E06B52fE78f0d0264eEdE74799
+- Treasury: 0x49bBEFa1d94702C0e9a5EAdDEc7c3C5D3eb9086B
+- OLD (deprecated): 0xe2fdd5C6989AAf8aA54f8174b6C2d8572C67F46E
+
+## Whitelisted Addresses (Free Launches)
+- 0x49bBEFa1d94702C0e9a5EAdDEc7c3C5D3eb9086B
+- 0xa0d254a39Ea8645FFc79A9353c32f02504c5F3e7
+- 0x1c3e87796d0D242209C4Cf0354DAbBceb95F2317
+- 0xdBDA1341890EFCc30734EEC5d5a462a69a29b0B7
+- 0x438052132c9984632532fdBf92bA6C9AA9654a39

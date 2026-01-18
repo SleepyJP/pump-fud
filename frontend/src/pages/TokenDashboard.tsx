@@ -224,8 +224,11 @@ export function TokenDashboard() {
   }
 
   useEffect(() => {
-    if (isSuccess) setAmount('')
-  }, [isSuccess])
+    if (isSuccess) {
+      setAmount('')
+      refetchAllowance()
+    }
+  }, [isSuccess, refetchAllowance])
 
   if (isLoading) {
     return (
@@ -825,43 +828,67 @@ export function TokenDashboard() {
 
           {/* Trade Button */}
           {isConnected ? (
-            <button
-              onClick={handleTrade}
-              disabled={
-                !amount ||
-                isPending ||
-                isConfirming ||
-                (activeTab === 'buy' && !buyQuote) ||
-                (activeTab === 'sell' && !sellQuote)
-              }
-              style={{
-                width: '100%',
-                padding: '16px',
-                borderRadius: '10px',
-                background: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote))
-                  ? 'linear-gradient(135deg, #333 0%, #222 100%)'
-                  : activeTab === 'buy'
-                    ? 'linear-gradient(135deg, #166534 0%, #22c55e 100%)'
-                    : activeTab === 'sell'
-                      ? 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)'
-                      : 'linear-gradient(135deg, #9a3412 0%, #f97316 100%)',
-                border: 'none',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '14px',
-                textTransform: 'uppercase',
-                cursor: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote)) ? 'not-allowed' : 'pointer',
-                boxShadow: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote))
-                  ? 'none'
-                  : `0 0 20px ${activeTab === 'buy' ? 'rgba(34,197,94,0.4)' : activeTab === 'sell' ? 'rgba(239,68,68,0.4)' : 'rgba(249,115,22,0.4)'}`,
-              }}
-            >
-              {isPending || isConfirming ? '⏳ Processing...'
-                : (activeTab === 'buy' && amount && !buyQuote) ? '⏳ Getting quote...'
-                : (activeTab === 'sell' && amount && !sellQuote) ? '⏳ Getting quote...'
-                : activeTab === 'burn' ? '🔥 Burn Tokens'
-                  : `${activeTab === 'buy' ? '✨ Buy' : '💫 Sell'} ${token.symbol}`}
-            </button>
+            needsApproval ? (
+              <button
+                onClick={handleApprove}
+                disabled={isPending || isConfirming}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '10px',
+                  background: (isPending || isConfirming)
+                    ? 'linear-gradient(135deg, #333 0%, #222 100%)'
+                    : 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  textTransform: 'uppercase',
+                  cursor: (isPending || isConfirming) ? 'not-allowed' : 'pointer',
+                  boxShadow: (isPending || isConfirming) ? 'none' : '0 0 20px rgba(168,85,247,0.4)',
+                }}
+              >
+                {isPending || isConfirming ? '⏳ Approving...' : `🔓 Approve ${token.symbol}`}
+              </button>
+            ) : (
+              <button
+                onClick={handleTrade}
+                disabled={
+                  !amount ||
+                  isPending ||
+                  isConfirming ||
+                  (activeTab === 'buy' && !buyQuote) ||
+                  (activeTab === 'sell' && !sellQuote)
+                }
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '10px',
+                  background: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote))
+                    ? 'linear-gradient(135deg, #333 0%, #222 100%)'
+                    : activeTab === 'buy'
+                      ? 'linear-gradient(135deg, #166534 0%, #22c55e 100%)'
+                      : activeTab === 'sell'
+                        ? 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)'
+                        : 'linear-gradient(135deg, #9a3412 0%, #f97316 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  textTransform: 'uppercase',
+                  cursor: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote)) ? 'not-allowed' : 'pointer',
+                  boxShadow: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote))
+                    ? 'none'
+                    : `0 0 20px ${activeTab === 'buy' ? 'rgba(34,197,94,0.4)' : activeTab === 'sell' ? 'rgba(239,68,68,0.4)' : 'rgba(249,115,22,0.4)'}`,
+                }}
+              >
+                {isPending || isConfirming ? '⏳ Processing...'
+                  : (activeTab === 'buy' && amount && !buyQuote) ? '⏳ Getting quote...'
+                  : (activeTab === 'sell' && amount && !sellQuote) ? '⏳ Getting quote...'
+                  : activeTab === 'burn' ? '🔥 Burn Tokens'
+                    : `${activeTab === 'buy' ? '✨ Buy' : '💫 Sell'} ${token.symbol}`}
+              </button>
+            )
           ) : (
             <div style={{
               display: 'flex',

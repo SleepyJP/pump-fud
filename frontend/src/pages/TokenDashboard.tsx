@@ -139,8 +139,9 @@ export function TokenDashboard() {
     }
   }, [tokenAddress])
 
-  const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending, error: writeError, reset: resetWrite } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess, error: txError } = useWaitForTransactionReceipt({ hash })
+  const [txStatus, setTxStatus] = useState<string | null>(null)
 
   // Get buy quote
   const { data: buyQuote } = useReadContract({
@@ -223,12 +224,33 @@ export function TokenDashboard() {
     }
   }
 
+  // Handle transaction success
   useEffect(() => {
     if (isSuccess) {
       setAmount('')
+      setTxStatus('✅ Transaction successful!')
       refetchAllowance()
+      setTimeout(() => setTxStatus(null), 5000)
     }
   }, [isSuccess, refetchAllowance])
+
+  // Handle transaction errors
+  useEffect(() => {
+    if (writeError) {
+      const msg = writeError.message.includes('User rejected')
+        ? 'Transaction cancelled'
+        : writeError.message.slice(0, 100)
+      setTxStatus(`❌ ${msg}`)
+      setTimeout(() => {
+        setTxStatus(null)
+        resetWrite()
+      }, 5000)
+    }
+    if (txError) {
+      setTxStatus(`❌ Transaction failed: ${txError.message.slice(0, 50)}`)
+      setTimeout(() => setTxStatus(null), 5000)
+    }
+  }, [writeError, txError, resetWrite])
 
   if (isLoading) {
     return (
@@ -825,6 +847,22 @@ export function TokenDashboard() {
               {activeTab === 'buy' ? '1%' : activeTab === 'sell' ? '1.10%' : '0%'}
             </span>
           </div>
+
+          {/* Transaction Status */}
+          {txStatus && (
+            <div style={{
+              padding: '12px',
+              backgroundColor: txStatus.startsWith('✅') ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+              border: `1px solid ${txStatus.startsWith('✅') ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
+              borderRadius: '8px',
+              marginBottom: '12px',
+              textAlign: 'center',
+            }}>
+              <span style={{ fontSize: '13px', color: txStatus.startsWith('✅') ? '#22c55e' : '#ef4444' }}>
+                {txStatus}
+              </span>
+            </div>
+          )}
 
           {/* Trade Button */}
           {isConnected ? (

@@ -1,16 +1,55 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useReadContract } from 'wagmi'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useReadContract, useWriteContract, useAccount } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { formatEther } from 'viem'
-import { PUMP_FUD_ADDRESS, PUMP_FUD_ABI } from '../config/wagmi'
+import { formatEther, isAddress } from 'viem'
+import { PUMP_FUD_ADDRESS, PUMP_FUD_ABI, LEADERBOARD_ADDRESS, LEADERBOARD_ABI } from '../config/wagmi'
 import { AdCarousel } from '../components/AdCarousel'
 
 type FilterOption = 'live' | 'rising' | 'new' | 'graduated'
 
 export function HomePage() {
   const [filter, setFilter] = useState<FilterOption>('live')
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { address: userAddress, isConnected } = useAccount()
+  const [referralRegistered, setReferralRegistered] = useState(false)
+
+  const refParam = searchParams.get('ref')
+  const leaderboardDeployed = true
+
+  // Check if user already has a referrer
+  const { data: existingReferrer } = useReadContract({
+    address: leaderboardDeployed ? LEADERBOARD_ADDRESS : undefined,
+    abi: LEADERBOARD_ABI,
+    functionName: 'referrerOf',
+    args: userAddress ? [userAddress] : undefined,
+  })
+
+  // Register referrer from URL param
+  const { writeContract: registerRef, isPending: isRegisteringRef } = useWriteContract()
+
+  useEffect(() => {
+    if (
+      leaderboardDeployed &&
+      isConnected &&
+      userAddress &&
+      refParam &&
+      isAddress(refParam) &&
+      refParam.toLowerCase() !== userAddress.toLowerCase() &&
+      existingReferrer === '0x0000000000000000000000000000000000000000' &&
+      !referralRegistered &&
+      !isRegisteringRef
+    ) {
+      registerRef({
+        address: LEADERBOARD_ADDRESS,
+        abi: LEADERBOARD_ABI,
+        functionName: 'registerReferrer',
+        args: [refParam as `0x${string}`],
+      })
+      setReferralRegistered(true)
+    }
+  }, [leaderboardDeployed, isConnected, userAddress, refParam, existingReferrer, referralRegistered, isRegisteringRef, registerRef])
 
   // Fetch all tokens (paginated)
   const { data: allTokens } = useReadContract({
@@ -76,24 +115,48 @@ export function HomePage() {
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: '#0f0f0f',
+      backgroundColor: '#0a0a0a',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
+      {/* Cathedral Background */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundImage: 'url(/backgrounds/live-tokens-cathedral.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        opacity: 0.15,
+        zIndex: 0,
+      }} />
+      {/* Dark Gradient Overlay */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: `
+          linear-gradient(180deg, rgba(10,10,10,0.7) 0%, rgba(10,10,10,0.4) 30%, rgba(10,10,10,0.6) 70%, rgba(10,10,10,0.95) 100%),
+          radial-gradient(ellipse at 50% 0%, rgba(220,20,60,0.08) 0%, transparent 50%)
+        `,
+        zIndex: 1,
+        pointerEvents: 'none',
+      }} />
       {/* ═══════════════════════════════════════════════════════════════════
           HEADER BAR - Full Width
           ═══════════════════════════════════════════════════════════════════ */}
       <header style={{
         height: '60px',
-        backgroundColor: '#1a1a1a',
-        borderBottom: '1px solid #2a2a2a',
+        backgroundColor: 'rgba(26,26,26,0.95)',
+        borderBottom: '1px solid rgba(220,20,60,0.2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         flexShrink: 0,
         zIndex: 100,
+        position: 'relative',
+        backdropFilter: 'blur(10px)',
       }}>
         {/* Left - Logo & Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -145,29 +208,53 @@ export function HomePage() {
         {/* Right - Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
-            onClick={() => navigate('/launch')}
+            onClick={() => navigate('/leaderboard')}
             style={{
               padding: '10px 20px',
-              background: 'linear-gradient(135deg, #dc143c 0%, #8b0000 100%)',
-              border: 'none',
+              background: 'transparent',
+              border: '1px solid #ffd700',
               borderRadius: '8px',
-              color: '#fff',
+              color: '#ffd700',
               fontWeight: 700,
               fontSize: '13px',
               cursor: 'pointer',
-              boxShadow: '0 0 20px rgba(220,20,60,0.3)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255,215,0,0.1)'
+              e.currentTarget.style.boxShadow = '0 0 20px rgba(255,215,0,0.3)'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            👑 Leaderboard
+          </button>
+          <button
+            onClick={() => navigate('/launch')}
+            style={{
+              padding: '10px 20px',
+              background: 'linear-gradient(135deg, #00CC00 0%, #00FF00 50%, #00CC00 100%)',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#000',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              boxShadow: '0 0 20px rgba(0,255,0,0.3)',
               transition: 'all 0.2s ease',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'scale(1.02)'
-              e.currentTarget.style.boxShadow = '0 0 30px rgba(220,20,60,0.5)'
+              e.currentTarget.style.boxShadow = '0 0 30px rgba(0,255,0,0.5)'
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = 'scale(1)'
-              e.currentTarget.style.boxShadow = '0 0 20px rgba(220,20,60,0.3)'
+              e.currentTarget.style.boxShadow = '0 0 20px rgba(0,255,0,0.3)'
             }}
           >
-            🚀 Create Token
+            ⚒️ Forge Token
           </button>
           <ConnectButton />
         </div>
@@ -180,6 +267,8 @@ export function HomePage() {
         flex: 1,
         overflow: 'auto',
         padding: '20px 24px',
+        position: 'relative',
+        zIndex: 10,
       }}>
         {/* Ad Carousel */}
         <div style={{ marginBottom: '20px' }}>
@@ -241,22 +330,25 @@ export function HomePage() {
                   key={token.tokenAddress}
                   onClick={() => navigate(`/dashboard/${token.tokenAddress}`)}
                   style={{
-                    backgroundColor: '#1a1a1a',
+                    background: 'rgba(26,26,26,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                     borderRadius: '12px',
-                    border: '1px solid #2a2a2a',
+                    border: '1px solid rgba(255,255,255,0.1)',
                     padding: '16px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.style.borderColor = accentColor
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.4), 0 0 20px ${accentColor}20`
+                    e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)'
+                    e.currentTarget.style.boxShadow = `0 12px 32px rgba(0,0,0,0.4), 0 0 30px ${accentColor}30`
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.borderColor = '#2a2a2a'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)'
                   }}
                 >
                   {/* Card Header */}
@@ -376,7 +468,7 @@ export function HomePage() {
                       }}>
                         <span>Progress to Graduation</span>
                         <span style={{ color: accentColor }}>
-                          {Math.min(100, (Number(formatEther(token.reserveBalance)) / 100000) * 100).toFixed(1)}%
+                          {Math.min(100, (Number(formatEther(token.reserveBalance)) / 50000000) * 100).toFixed(1)}%
                         </span>
                       </div>
                       <div style={{
@@ -386,7 +478,7 @@ export function HomePage() {
                         overflow: 'hidden',
                       }}>
                         <div style={{
-                          width: `${Math.min(100, (Number(formatEther(token.reserveBalance)) / 100000) * 100)}%`,
+                          width: `${Math.min(100, (Number(formatEther(token.reserveBalance)) / 50000000) * 100)}%`,
                           height: '100%',
                           background: `linear-gradient(90deg, ${accentColor} 0%, ${accentColor}80 100%)`,
                         }} />

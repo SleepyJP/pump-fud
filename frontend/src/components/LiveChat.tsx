@@ -18,15 +18,6 @@ interface LiveChatProps {
   secondaryColor: string
 }
 
-const DEMO_MESSAGES: ChatMessage[] = [
-  { id: '1', address: '0x49bb...086B', message: 'LFG! This token is going to the moon', timestamp: Date.now() - 60000 },
-  { id: '2', address: '0xdBDA...0B7', message: 'Diamond hands only', timestamp: Date.now() - 45000 },
-  { id: '3', address: '0x4bD4...8fB', message: 'Just bought another bag', timestamp: Date.now() - 30000, isSuperChat: true, superChatAmount: 1000, superChatColor: '#22c55e' },
-  { id: '4', address: '0x1234...5678', message: 'When DEX?', timestamp: Date.now() - 20000 },
-  { id: '5', address: '0xabcd...efgh', message: 'WAGMI', timestamp: Date.now() - 10000 },
-  { id: '6', address: '0x9876...4321', message: 'Best community ever', timestamp: Date.now() - 5000, isSuperChat: true, superChatAmount: 5000, superChatColor: '#a855f7' },
-]
-
 export function LiveChat({
   tokenSymbol,
   holderPercentage,
@@ -34,7 +25,7 @@ export function LiveChat({
   secondaryColor,
 }: LiveChatProps) {
   const { address, isConnected } = useAccount()
-  const [messages, setMessages] = useState<ChatMessage[]>(DEMO_MESSAGES)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [showSuperChat, setShowSuperChat] = useState(false)
   const [superChatAmount, setSuperChatAmount] = useState('')
@@ -50,34 +41,6 @@ export function LiveChat({
   useEffect(() => {
     scrollToBottom()
   }, [messages])
-
-  // Simulate incoming messages
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const randomMessages = [
-        'Bullish!',
-        'Great project',
-        'To the moon!',
-        'Holding strong',
-        'Love this community',
-        'WAGMI',
-        'NFA but this is the one',
-        'Who else is accumulating?',
-      ]
-      const randomAddresses = ['0x1111...2222', '0x3333...4444', '0x5555...6666', '0x7777...8888']
-
-      const newMsg: ChatMessage = {
-        id: Date.now().toString(),
-        address: randomAddresses[Math.floor(Math.random() * randomAddresses.length)],
-        message: randomMessages[Math.floor(Math.random() * randomMessages.length)],
-        timestamp: Date.now(),
-      }
-
-      setMessages(prev => [...prev.slice(-50), newMsg])
-    }, 8000)
-
-    return () => clearInterval(interval)
-  }, [])
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !canChat || !isConnected) return

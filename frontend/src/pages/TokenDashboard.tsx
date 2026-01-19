@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance } from 'wagmi'
-import { formatEther, parseEther } from 'viem'
+import { formatEther, parseEther, isAddress } from 'viem'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { PUMP_FUD_ADDRESS, PUMP_FUD_ABI } from '../config/wagmi'
+import { PUMP_FUD_ADDRESS, PUMP_FUD_ABI, LEADERBOARD_ADDRESS, LEADERBOARD_ABI } from '../config/wagmi'
 import { PriceChart } from '../components/PriceChart'
 import { MessageBoard } from '../components/MessageBoard'
 
@@ -11,6 +11,41 @@ interface SocialLinks {
   twitter?: string
   telegram?: string
   website?: string
+  livestreamUrl?: string
+  youtubeStream?: string
+  twitch?: string
+  kick?: string
+}
+
+// Parse livestream URL and return embed URL
+function getLivestreamEmbed(url: string): { embedUrl: string; platform: string } | null {
+  if (!url) return null
+
+  // YouTube Live / YouTube Video
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/)
+  if (ytMatch) {
+    return { embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`, platform: 'YouTube' }
+  }
+
+  // Twitch
+  const twitchMatch = url.match(/twitch\.tv\/([a-zA-Z0-9_]+)/)
+  if (twitchMatch) {
+    const parent = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+    return { embedUrl: `https://player.twitch.tv/?channel=${twitchMatch[1]}&parent=${parent}&autoplay=true`, platform: 'Twitch' }
+  }
+
+  // Kick
+  const kickMatch = url.match(/kick\.com\/([a-zA-Z0-9_]+)/)
+  if (kickMatch) {
+    return { embedUrl: `https://player.kick.com/${kickMatch[1]}`, platform: 'Kick' }
+  }
+
+  // If it's already an embed URL, return as-is
+  if (url.includes('embed') || url.includes('player.')) {
+    return { embedUrl: url, platform: 'Stream' }
+  }
+
+  return null
 }
 
 interface TokenMetadata {
@@ -69,13 +104,51 @@ const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD' as const
 
 export function TokenDashboard() {
   const { tokenId: tokenIdParam } = useParams<{ tokenId: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { address: userAddress, isConnected } = useAccount()
   const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'burn'>('buy')
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState('5')
+  const [referralRegistered, setReferralRegistered] = useState(false)
+  const [showLivestream, setShowLivestream] = useState(true)
 
   const tokenAddress = tokenIdParam as `0x${string}` | undefined
+  const refParam = searchParams.get('ref')
+  const leaderboardDeployed = true
+
+  // Check if user already has a referrer
+  const { data: existingReferrer } = useReadContract({
+    address: leaderboardDeployed ? LEADERBOARD_ADDRESS : undefined,
+    abi: LEADERBOARD_ABI,
+    functionName: 'referrerOf',
+    args: userAddress ? [userAddress] : undefined,
+  })
+
+  // Register referrer from URL param
+  const { writeContract: registerRef, isPending: isRegisteringRef } = useWriteContract()
+
+  useEffect(() => {
+    if (
+      leaderboardDeployed &&
+      isConnected &&
+      userAddress &&
+      refParam &&
+      isAddress(refParam) &&
+      refParam.toLowerCase() !== userAddress.toLowerCase() &&
+      existingReferrer === '0x0000000000000000000000000000000000000000' &&
+      !referralRegistered &&
+      !isRegisteringRef
+    ) {
+      registerRef({
+        address: LEADERBOARD_ADDRESS,
+        abi: LEADERBOARD_ABI,
+        functionName: 'registerReferrer',
+        args: [refParam as `0x${string}`],
+      })
+      setReferralRegistered(true)
+    }
+  }, [leaderboardDeployed, isConnected, userAddress, refParam, existingReferrer, referralRegistered, isRegisteringRef, registerRef])
 
   const { data: tokenData, isLoading } = useReadContract({
     address: PUMP_FUD_ADDRESS,
@@ -306,30 +379,54 @@ export function TokenDashboard() {
     return num.toFixed(2)
   }
 
-  const graduationProgress = Math.min(100, (Number(formatEther(token.reserveBalance)) / 100000) * 100)
+  const graduationProgress = Math.min(100, (Number(formatEther(token.reserveBalance)) / 50000000) * 100)
 
   return (
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: '#0f0f0f',
+      backgroundColor: '#0a0a0a',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
+      {/* Cathedral Background */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundImage: 'url(/backgrounds/home-cathedral.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        opacity: 0.12,
+        zIndex: 0,
+      }} />
+      {/* Dark Gradient Overlay */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: `
+          linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.5) 50%, rgba(10,10,10,0.9) 100%),
+          radial-gradient(ellipse at 50% 0%, ${theme.primary}15 0%, transparent 40%)
+        `,
+        zIndex: 1,
+        pointerEvents: 'none',
+      }} />
       {/* ═══════════════════════════════════════════════════════════════════
           HEADER BAR - Full Width
           ═══════════════════════════════════════════════════════════════════ */}
       <header style={{
         height: '60px',
-        backgroundColor: '#1a1a1a',
-        borderBottom: '1px solid #2a2a2a',
+        backgroundColor: 'rgba(26,26,26,0.95)',
+        borderBottom: `1px solid ${theme.primary}30`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         flexShrink: 0,
         zIndex: 100,
+        position: 'relative',
+        backdropFilter: 'blur(10px)',
       }}>
         {/* Left - Back + Logo + Token Info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -531,6 +628,87 @@ export function TokenDashboard() {
               </div>
             ))}
           </div>
+
+          {/* Livestream Embed - Shows when creator has livestream URL */}
+          {(() => {
+            const livestreamUrl = token.socials?.livestreamUrl || token.socials?.youtubeStream || token.socials?.twitch || token.socials?.kick
+            const embed = livestreamUrl ? getLivestreamEmbed(livestreamUrl) : null
+
+            if (!embed) return null
+
+            return (
+              <div style={{
+                backgroundColor: '#1a1a1a',
+                borderRadius: '12px',
+                border: '1px solid #2a2a2a',
+                overflow: 'hidden',
+              }}>
+                {/* Livestream Header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderBottom: '1px solid #2a2a2a',
+                  backgroundColor: 'rgba(220,20,60,0.1)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', animation: 'pulse 2s ease-in-out infinite' }}>🔴</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#dc143c' }}>
+                      LIVE on {embed.platform}
+                    </span>
+                    <span style={{
+                      padding: '2px 8px',
+                      backgroundColor: 'rgba(34,197,94,0.2)',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      color: '#22c55e',
+                      fontWeight: 700,
+                    }}>
+                      STREAMING
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowLivestream(!showLivestream)}
+                    style={{
+                      padding: '4px 12px',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #444',
+                      borderRadius: '4px',
+                      color: '#888',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {showLivestream ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {/* Livestream Player */}
+                {showLivestream && (
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    paddingTop: '56.25%', // 16:9 aspect ratio
+                  }}>
+                    <iframe
+                      src={embed.embedUrl}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                      }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Chart */}
           <div style={{

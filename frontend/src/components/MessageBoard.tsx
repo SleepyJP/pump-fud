@@ -20,62 +20,6 @@ interface MessageBoardProps {
   secondaryColor: string
 }
 
-const DEMO_MESSAGES: BoardMessage[] = [
-  {
-    id: '1',
-    address: '0x49bb...086B',
-    message: 'Just grabbed a bag! This project has solid fundamentals. The bonding curve mechanics are clean and the community is growing fast.',
-    timestamp: Date.now() - 3600000,
-    likes: 24,
-    replies: [
-      {
-        id: '1-1',
-        address: '0xdBDA...0B7',
-        message: 'Welcome aboard! Diamond hands only here.',
-        timestamp: Date.now() - 3500000,
-        likes: 8,
-        replies: [],
-      },
-      {
-        id: '1-2',
-        address: '0x4bD4...8fB',
-        message: 'LFG!',
-        timestamp: Date.now() - 3400000,
-        likes: 5,
-        replies: [],
-      },
-    ],
-  },
-  {
-    id: '2',
-    address: '0xa0d2...3e7',
-    message: 'When do you think we hit graduation? The reserve is climbing fast.',
-    timestamp: Date.now() - 7200000,
-    likes: 15,
-    replies: [
-      {
-        id: '2-1',
-        address: '0x1c3e...317',
-        message: 'At this rate, maybe within the week if momentum keeps up.',
-        timestamp: Date.now() - 7000000,
-        likes: 12,
-        replies: [],
-      },
-    ],
-    isSuperChat: true,
-    superChatAmount: 2500,
-    superChatColor: '#22c55e',
-  },
-  {
-    id: '3',
-    address: '0x4385...a39',
-    message: 'The creator should add a Telegram group for better coordination. Anyone know if there is one?',
-    timestamp: Date.now() - 14400000,
-    likes: 9,
-    replies: [],
-  },
-]
-
 export function MessageBoard({
   tokenSymbol,
   holderPercentage,
@@ -83,7 +27,7 @@ export function MessageBoard({
   secondaryColor,
 }: MessageBoardProps) {
   const { address, isConnected } = useAccount()
-  const [messages, setMessages] = useState<BoardMessage[]>(DEMO_MESSAGES)
+  const [messages, setMessages] = useState<BoardMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')

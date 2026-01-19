@@ -394,7 +394,7 @@ export function TokenDashboard() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/home-cathedral.jpg)',
+        backgroundImage: 'url(/backgrounds/live-tokens-spooky.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

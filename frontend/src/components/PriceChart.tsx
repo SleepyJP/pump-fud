@@ -19,13 +19,13 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
   const chartData = useMemo(() => {
     const data: AreaData<Time>[] = []
     const now = Math.floor(Date.now() / 1000)
-    const startTime = launchTime || now - 3600
+    const startTime = launchTime > 0 ? launchTime : now - 3600
 
     const INITIAL_PRICE = 0.00001
     const CURVE_STEEPNESS = 0.000001
 
     if (!tokensSold || tokensSold === 0n) {
-      const interval = (now - startTime) / 50
+      const interval = Math.max(1, (now - startTime) / 50)
       for (let i = 0; i <= 50; i++) {
         const time = startTime + Math.floor(interval * i)
         data.push({
@@ -38,7 +38,7 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
 
     const totalSold = Number(formatEther(tokensSold))
     const steps = 50
-    const interval = (now - startTime) / steps
+    const interval = Math.max(1, (now - startTime) / steps)
 
     for (let i = 0; i <= steps; i++) {
       const progress = i / steps
@@ -67,6 +67,12 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
     if (!chartContainerRef.current) return
 
     const container = chartContainerRef.current
+
+    // Ensure container has dimensions before creating chart
+    const rect = container.getBoundingClientRect()
+    const width = rect.width || 400
+    const height = rect.height || 280
+
     const chart = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
@@ -77,8 +83,8 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
         vertLines: { color: 'rgba(255,255,255,0.03)' },
         horzLines: { color: 'rgba(255,255,255,0.03)' },
       },
-      width: container.clientWidth,
-      height: container.clientHeight || 300,
+      width,
+      height,
       timeScale: {
         borderColor: 'rgba(255,255,255,0.1)',
         timeVisible: true,
@@ -96,6 +102,7 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
 
     chartRef.current = chart
 
+    // Create area series with v5 API
     const series = chart.addSeries(AreaSeries, {
       lineColor: themeColor,
       topColor: `${themeColor}50`,
@@ -109,13 +116,18 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
     })
 
     seriesRef.current = series
-    series.setData(chartData)
-    chart.timeScale().fitContent()
+
+    if (chartData.length > 0) {
+      series.setData(chartData)
+      chart.timeScale().fitContent()
+    }
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const { width, height } = entry.contentRect
-        chart.applyOptions({ width, height: height || 300 })
+        const { width: w, height: h } = entry.contentRect
+        if (w > 0 && h > 0) {
+          chart.applyOptions({ width: w, height: h })
+        }
       }
     })
     resizeObserver.observe(container)
@@ -123,9 +135,12 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
     return () => {
       resizeObserver.disconnect()
       chart.remove()
+      chartRef.current = null
+      seriesRef.current = null
     }
-  }, [chartData, themeColor])
+  }, [themeColor])
 
+  // Update data when chartData changes (without recreating chart)
   useEffect(() => {
     if (seriesRef.current && chartData.length > 0) {
       seriesRef.current.setData(chartData)
@@ -134,7 +149,12 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
   }, [chartData])
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '280px' }}>
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      minHeight: '280px',
+    }}>
       {/* Current Price Display */}
       <div style={{
         position: 'absolute',
@@ -183,8 +203,19 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
         </span>
       </div>
 
-      {/* Chart Container - Fills available space */}
-      <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
+      {/* Chart Container - Absolute positioned to fill parent */}
+      <div
+        ref={chartContainerRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
+        }}
+      />
     </div>
   )
 }

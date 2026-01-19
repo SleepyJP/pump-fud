@@ -743,7 +743,7 @@ export function TokenDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ fontSize: '12px', color: '#888' }}>Progress to Graduation</span>
                 <span style={{ fontFamily: 'monospace', fontSize: '12px', color: theme.primary, fontWeight: 700 }}>
-                  {graduationProgress.toFixed(1)}% / 100K PLS
+                  {graduationProgress.toFixed(1)}% / 50M PLS
                 </span>
               </div>
               <div style={{

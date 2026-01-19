@@ -155,6 +155,9 @@ export function TokenDashboard() {
     abi: PUMP_FUD_ABI,
     functionName: 'getTokenByAddress',
     args: tokenAddress ? [tokenAddress] : undefined,
+    query: {
+      refetchInterval: 5000, // Poll every 5 seconds for live updates
+    },
   })
 
   const token = useMemo(() => {

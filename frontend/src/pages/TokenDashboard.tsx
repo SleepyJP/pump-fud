@@ -394,7 +394,7 @@ export function TokenDashboard() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/token-dashboard-main.jpg)',
+        backgroundImage: 'url(/backgrounds/fantasy-tree-maze.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

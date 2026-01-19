@@ -393,17 +393,6 @@ export function TokenDashboard() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* Cathedral Background */}
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundImage: 'url(/backgrounds/main-edited.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        opacity: 0.12,
-        zIndex: 0,
-      }} />
       {/* Dark Gradient Overlay */}
       <div style={{
         position: 'fixed',

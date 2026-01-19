@@ -1,0 +1,51 @@
+{
+  "MISSION": "PUMP_FUD_TEST_TOKEN_DUAL_DEX",
+  "STATE_LOCK": true,
+  "NO_DEVIATION": true,
+  "OBJECTIVES": [
+    {
+      "id": 1,
+      "action": "ADD_TEST_TOKEN_MAPPING",
+      "file": "/home/sleepyj/pump-fud/src/PumpFud.sol",
+      "details": "Add mapping(address => bool) public isTestToken and uint256 public testGraduationThreshold = 10000 ether"
+    },
+    {
+      "id": 2,
+      "action": "ADD_OWNER_FUNCTION",
+      "file": "/home/sleepyj/pump-fud/src/PumpFud.sol",
+      "details": "Add function setTestToken(address token, bool status) external onlyOwner"
+    },
+    {
+      "id": 3,
+      "action": "MODIFY_GRADUATION_CHECK",
+      "file": "/home/sleepyj/pump-fud/src/PumpFud.sol",
+      "details": "In graduation check use testGraduationThreshold if isTestToken[tokenAddress] else use normal threshold"
+    },
+    {
+      "id": 4,
+      "action": "SET_DEFAULTS",
+      "values": {
+        "successRewardBps": 1000,
+        "pulseXLpBps": 1000,
+        "paisleyLpBps": 1000,
+        "paisleyRouter": "0x92AF1b541Ba97C1E0c3B4E4902Af170944875d97"
+      }
+    },
+    {
+      "id": 5,
+      "action": "COMPILE",
+      "command": "cd /home/sleepyj/pump-fud && forge build"
+    },
+    {
+      "id": 6,
+      "action": "REPORT",
+      "output": "Show ONLY the new/modified lines of code and compile status"
+    }
+  ],
+  "VALIDATION_LOOP": {
+    "after_each_step": "Verify change was made correctly before proceeding",
+    "on_error": "Fix and retry same step, do not skip",
+    "on_completion": "Confirm all 6 objectives complete"
+  },
+  "FORBIDDEN": ["Skip steps", "Add unrelated features", "Refactor other code", "Change anything not specified"]
+}

@@ -124,7 +124,7 @@ export function HomePage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/fantasy-tree-maze.png)',
+        backgroundImage: 'url(/backgrounds/token-dashboard-main.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',

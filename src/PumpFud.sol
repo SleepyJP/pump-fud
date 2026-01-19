@@ -36,8 +36,12 @@ contract PumpFud is ReentrancyGuard, Ownable {
     address public pulseXFactory = 0x29eA7545DEf87022BAdc76323F373EA1e707C523;
 
     // Paisley Swap DEX (set after deployment)
-    address public paisleyRouter;
+    address public paisleyRouter = 0x92AF1b541Ba97C1E0c3B4E4902Af170944875d97;
     address public paisleyFactory;
+
+    // Test tokens with lower graduation threshold
+    mapping(address => bool) public isTestToken;
+    uint256 public testGraduationThreshold = 10000 ether;
 
     uint256 public constant PRECISION = 1e18;
 
@@ -54,8 +58,8 @@ contract PumpFud is ReentrancyGuard, Ownable {
     // ═══════════════════════════════════════════════════════════════════════════
     uint256 public burnBps = 2000;              // 20% (1/5) burn to dead address
     uint256 public pulseXLpBps = 1000;          // 10% burns to PulseX V2 LP
-    uint256 public paisleyLpBps = 0;            // 0% to Paisley Swap DEX
-    uint256 public successRewardBps = 500;      // 5% success reward to treasury
+    uint256 public paisleyLpBps = 1000;         // 10% to Paisley Swap DEX
+    uint256 public successRewardBps = 1000;     // 10% success reward to treasury
     uint256 public platformFeeBps = 100;        // 1% platform fee on trades
     uint256 public constant BPS_DENOMINATOR = 10000;
 
@@ -384,8 +388,9 @@ contract PumpFud is ReentrancyGuard, Ownable {
         uint256 newPrice = getCurrentPrice(tokenId);
         emit TokenBought(tokenId, msg.sender, msg.value, tokensOut, newPrice, block.timestamp);
 
-        // Check graduation
-        if (t.reserveBalance >= graduationThreshold) {
+        // Check graduation - use testGraduationThreshold if isTestToken, else normal threshold
+        uint256 threshold = isTestToken[t.tokenAddress] ? testGraduationThreshold : graduationThreshold;
+        if (t.reserveBalance >= threshold) {
             _graduateToken(tokenId);
         }
     }
@@ -756,6 +761,10 @@ contract PumpFud is ReentrancyGuard, Ownable {
 
     function setPaisleyFactory(address _factory) external onlyOwner {
         paisleyFactory = _factory; // Can be address(0) to disable
+    }
+
+    function setTestToken(address token, bool status) external onlyOwner {
+        isTestToken[token] = status;
     }
 
     function setLpRecipient(address _lpRecipient) external onlyOwner {

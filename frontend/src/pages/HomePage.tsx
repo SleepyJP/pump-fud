@@ -124,7 +124,7 @@ export function HomePage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/token-dashboard-main.jpg)',
+        backgroundImage: 'url(/backgrounds/fantasy-tree-maze.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
@@ -467,8 +467,8 @@ export function HomePage() {
                         marginBottom: '4px',
                       }}>
                         <span>Progress to Graduation</span>
-                        <span style={{ color: accentColor }}>
-                          {Math.min(100, (Number(formatEther(token.reserveBalance)) / 50000000) * 100).toFixed(1)}%
+                        <span style={{ color: accentColor, fontFamily: 'monospace' }}>
+                          {Math.min(100, (Number(formatEther(token.reserveBalance)) / 50000000) * 100).toFixed(1)}% / 50M PLS
                         </span>
                       </div>
                       <div style={{

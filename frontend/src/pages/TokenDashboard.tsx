@@ -712,16 +712,13 @@ export function TokenDashboard() {
 
           {/* Chart */}
           <div style={{
-            flex: 1,
             backgroundColor: '#1a1a1a',
             borderRadius: '12px',
             border: '1px solid #2a2a2a',
             padding: '16px',
-            minHeight: '300px',
-            display: 'flex',
-            flexDirection: 'column',
+            height: '350px',
           }}>
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div style={{ width: '100%', height: '100%' }}>
               <PriceChart
                 tokenAddress={tokenAddress || ''}
                 reserveBalance={token.reserveBalance}

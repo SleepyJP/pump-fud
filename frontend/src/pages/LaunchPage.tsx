@@ -208,27 +208,37 @@ export function LaunchPage() {
           width: '100%',
           maxWidth: '520px',
         }}>
-          {/* Title */}
+          {/* Title - THE FORGE */}
           <div style={{
             textAlign: 'center',
             marginBottom: '28px',
           }}>
+            <p style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '14px',
+              color: '#b8860b',
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              marginBottom: '8px',
+            }}>
+              ⚒️ THE FORGE ⚒️
+            </p>
             <h1 style={{
               fontFamily: 'Cinzel, serif',
-              fontSize: '32px',
+              fontSize: '36px',
               fontWeight: 700,
               color: '#ffd700',
               letterSpacing: '0.1em',
               textShadow: '0 0 30px rgba(255,215,0,0.5), 0 4px 8px rgba(0,0,0,0.5)',
               marginBottom: '8px',
             }}>
-              CREATE TOKEN
+              FORGE YOUR TOKEN
             </h1>
             <p style={{
-              color: 'rgba(255,255,255,0.6)',
-              fontSize: '14px',
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '13px',
             }}>
-              Launch your token on PUMP.FUD
+              Shape your creation in the flames of PUMP.FUD
             </p>
           </div>
 

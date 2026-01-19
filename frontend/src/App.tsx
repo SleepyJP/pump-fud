@@ -11,9 +11,10 @@ import { SwapPage } from './pages/SwapPage'
 import { LivestreamsPage } from './pages/LivestreamsPage'
 import { LiveChatPopup } from './pages/LiveChatPopup'
 import { MessageBoardPopup } from './pages/MessageBoardPopup'
+import { LeaderboardPage } from './pages/LeaderboardPage'
 
 // Full-bleed routes don't show sidebar/chrome
-const FULL_BLEED_ROUTES = ['/', '/launch', '/live-chat', '/message-board']
+const FULL_BLEED_ROUTES = ['/', '/launch', '/live-chat', '/message-board', '/leaderboard']
 
 // Dashboard routes are also full-bleed but need pattern matching
 const isDashboardRoute = (pathname: string) => pathname.startsWith('/dashboard/')
@@ -38,6 +39,7 @@ function AppContent() {
           <Route path="/dashboard/:tokenId" element={<TokenDashboard />} />
           <Route path="/live-chat" element={<LiveChatPopup />} />
           <Route path="/message-board" element={<MessageBoardPopup />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
         </Routes>
 
         {/* CSS Animations for full-bleed pages */}

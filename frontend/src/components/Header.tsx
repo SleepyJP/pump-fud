@@ -42,6 +42,17 @@ export function Header() {
           >
             Launch
           </Link>
+          <Link
+            to="/leaderboard"
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+              isActive('/leaderboard')
+                ? 'bg-yellow-500/20 text-yellow-400'
+                : 'text-pump-white-muted hover:text-yellow-400 hover:bg-yellow-500/10'
+            }`}
+          >
+            <span>👑</span>
+            Leaderboard
+          </Link>
           <a
             href="https://scan.pulsechain.com"
             target="_blank"

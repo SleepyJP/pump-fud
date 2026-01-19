@@ -134,7 +134,7 @@ export function PriceChart({ reserveBalance, tokensSold, launchTime, themeColor 
   }, [chartData])
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '200px' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '280px' }}>
       {/* Current Price Display */}
       <div style={{
         position: 'absolute',

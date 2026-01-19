@@ -124,7 +124,7 @@ export function HomePage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/token-dashboard-main.jpg)',
+        backgroundImage: 'url(/backgrounds/main-edited.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',

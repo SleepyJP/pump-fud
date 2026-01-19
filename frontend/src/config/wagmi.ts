@@ -24,7 +24,7 @@ export const config = getDefaultConfig({
 })
 
 // Contract addresses
-export const PUMP_FUD_ADDRESS = '0xeb5ae44D7bC13A86e02051887d8C12e61ba90659' as const
+export const PUMP_FUD_ADDRESS = '0x7e65383639d8418E826a78a2f5C784cd4Bdb92D7' as const
 export const LEADERBOARD_ADDRESS = '0xAe213e8aFBf7d76667332092f817589fdaB68EC2' as const
 export const TREASURY = '0x49bBEFa1d94702C0e9a5EAdDEc7c3C5D3eb9086B' as const
 export const WPLS = '0xA1077a294dDE1B09bB078844df40758a5D0f9a27' as const

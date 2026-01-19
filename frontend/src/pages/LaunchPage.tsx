@@ -165,7 +165,7 @@ export function LaunchPage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/launch-altar.png)',
+        backgroundImage: 'url(/backgrounds/landing-page.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

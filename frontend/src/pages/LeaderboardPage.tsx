@@ -182,7 +182,7 @@ export function LeaderboardPage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/fantasy-tree-maze.png)',
+        backgroundImage: 'url(/backgrounds/stained-glass.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'brightness(0.6)',

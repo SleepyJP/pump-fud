@@ -65,7 +65,7 @@ export function LivestreamPanel({
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          backgroundImage: 'url(/backgrounds/pattern-dark-paisley.jpg)',
+          backgroundImage: 'url(/backgrounds/neon-main.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

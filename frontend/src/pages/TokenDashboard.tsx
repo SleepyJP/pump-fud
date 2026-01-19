@@ -1126,11 +1126,32 @@ export function TokenDashboard() {
             borderRadius: '8px',
             fontSize: '11px',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#666' }}>
               <span>Contract</span>
-              <span style={{ fontFamily: 'monospace', color: theme.primary }}>
-                {tokenAddress?.slice(0, 8)}...{tokenAddress?.slice(-6)}
-              </span>
+              <button
+                onClick={() => {
+                  if (tokenAddress) {
+                    navigator.clipboard.writeText(tokenAddress)
+                    alert('Copied: ' + tokenAddress)
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'monospace',
+                  color: theme.primary,
+                  fontSize: '11px',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  transition: 'background 0.2s',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                title="Click to copy full address"
+              >
+                {tokenAddress?.slice(0, 8)}...{tokenAddress?.slice(-6)} 📋
+              </button>
             </div>
           </div>
         </div>

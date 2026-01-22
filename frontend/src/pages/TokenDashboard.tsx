@@ -14,6 +14,7 @@ import { FeeVerification } from '../components/ui/FeeVerification'
 import { AdCarousel } from '../components/ui/AdCarousel'
 import { useLayout } from '../context/LayoutContext'
 import { useCustomFrames } from '../hooks/useCustomFrames'
+import { DashboardProvider, DashboardControls, CollapsibleStatsBar } from '../components/Dashboard'
 
 interface SocialLinks {
   twitter?: string
@@ -443,6 +444,7 @@ export function TokenDashboard() {
   const graduationProgress = Math.min(100, (Number(formatEther(token.reserveBalance)) / 50000000) * 100)
 
   return (
+    <DashboardProvider tokenAddress={tokenAddress || '0x0'}>
     <div style={{
       position: 'fixed',
       inset: 0,
@@ -664,6 +666,9 @@ export function TokenDashboard() {
             <FeeVerification />
           </div>
 
+          {/* NEW Dashboard Controls - Lock/Reset */}
+          <DashboardControls />
+
           <ConnectButton />
         </div>
       </header>
@@ -689,46 +694,21 @@ export function TokenDashboard() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            FIXED TOP SECTION - Stats + Description/Socials
+            FIXED TOP SECTION - CollapsibleStatsBar + Description/Socials
             ═══════════════════════════════════════════════════════════════════ */}
         <div style={{
           padding: '16px 24px',
           position: 'relative',
           zIndex: 50,
         }}>
-          {/* Stats Row */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '10px',
-          }}>
-            {[
-              { label: 'Total Supply', value: formatBalance(totalSupply), color: '#fff' },
-              { label: 'Tokens Sold', value: formatBalance(token.tokensSold), color: '#00ff00' },
-              { label: 'Your Balance', value: formatBalance(userTokenBalance), color: '#00ff00' },
-              { label: 'Your Holdings', value: `${holderPercentage.toFixed(2)}%`, color: '#00ff00' },
-              { label: 'Creator', value: `${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`, color: '#888' },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: '12px',
-                  backgroundColor: 'rgba(26,26,26,0.9)',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(0,255,0,0.1)',
-                  textAlign: 'center',
-                  backdropFilter: 'blur(5px)',
-                }}
-              >
-                <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: stat.color, marginBottom: '4px' }}>
-                  {stat.value}
-                </div>
-                <div style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* NEW: CollapsibleStatsBar replaces old stats grid */}
+          <CollapsibleStatsBar
+            totalSupply={formatBalance(totalSupply)}
+            tokensSold={formatBalance(token.tokensSold)}
+            yourBalance={formatBalance(userTokenBalance)}
+            yourHoldings={`${holderPercentage.toFixed(2)}%`}
+            creator={`${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`}
+          />
 
           {/* Token Description & Social Links */}
           {(token.description || Object.keys(token.socials).length > 0) && (
@@ -1508,5 +1488,6 @@ export function TokenDashboard() {
         }
       `}</style>
     </div>
+    </DashboardProvider>
   )
 }

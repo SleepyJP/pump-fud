@@ -11,6 +11,7 @@ import { DraggableResizableBox } from '../components/ui/DraggableResizableBox'
 import { FrameSelector } from '../components/ui/FrameSelector'
 import { SharedUIManager } from '../components/ui/SharedUIManager'
 import { FeeVerification } from '../components/ui/FeeVerification'
+import { AdCarousel } from '../components/ui/AdCarousel'
 import { useLayout } from '../context/LayoutContext'
 import { useCustomFrames } from '../hooks/useCustomFrames'
 
@@ -680,6 +681,13 @@ export function TokenDashboard() {
         overflow: 'hidden',
         zIndex: 2,
       }}>
+        {/* ═══════════════════════════════════════════════════════════════════
+            RL-009: AD CAROUSEL - Rotating Banner Ads
+            ═══════════════════════════════════════════════════════════════════ */}
+        <div style={{ margin: '0 24px 0', paddingTop: '8px' }}>
+          <AdCarousel position="top" height={60} rotationInterval={10000} />
+        </div>
+
         {/* ═══════════════════════════════════════════════════════════════════
             FIXED TOP SECTION - Stats + Description/Socials
             ═══════════════════════════════════════════════════════════════════ */}

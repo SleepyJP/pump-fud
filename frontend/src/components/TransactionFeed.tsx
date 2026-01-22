@@ -13,6 +13,34 @@ interface Transaction {
   txHash: `0x${string}`
 }
 
+// RL-007: Wallet tracking storage key
+const TRACKED_WALLETS_KEY = 'pump-phud-tracked-wallets'
+
+// Load tracked wallets from localStorage
+function loadTrackedWallets(): Set<string> {
+  try {
+    const stored = localStorage.getItem(TRACKED_WALLETS_KEY)
+    if (stored) {
+      const wallets = JSON.parse(stored) as string[]
+      console.log('[RALPH RL-007] Tracked wallets loaded:', wallets.length)
+      return new Set(wallets.map(w => w.toLowerCase()))
+    }
+  } catch (error) {
+    console.error('[RALPH RL-007] Failed to load tracked wallets:', error)
+  }
+  return new Set()
+}
+
+// Save tracked wallets to localStorage
+function saveTrackedWallets(wallets: Set<string>) {
+  try {
+    localStorage.setItem(TRACKED_WALLETS_KEY, JSON.stringify(Array.from(wallets)))
+    console.log('[RALPH RL-007] Tracked wallets saved:', wallets.size)
+  } catch (error) {
+    console.error('[RALPH RL-007] Failed to save tracked wallets:', error)
+  }
+}
+
 interface TransactionFeedProps {
   tokenAddress: `0x${string}`
   tokenSymbol: string
@@ -34,8 +62,32 @@ export function TransactionFeed({
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isPaused, setIsPaused] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(false)
+  const [trackedWallets, setTrackedWallets] = useState<Set<string>>(() => loadTrackedWallets())
+  const [showTrackedOnly, setShowTrackedOnly] = useState(false)
   const feedRef = useRef<HTMLDivElement>(null)
   const publicClient = usePublicClient()
+
+  // RL-007: Toggle wallet tracking
+  const toggleWalletTracking = useCallback((wallet: string) => {
+    const normalizedWallet = wallet.toLowerCase()
+    setTrackedWallets(prev => {
+      const updated = new Set(prev)
+      if (updated.has(normalizedWallet)) {
+        updated.delete(normalizedWallet)
+        console.log('[RALPH RL-007] Wallet untracked:', wallet)
+      } else {
+        updated.add(normalizedWallet)
+        console.log('[RALPH RL-007] Wallet tracked:', wallet)
+      }
+      saveTrackedWallets(updated)
+      return updated
+    })
+  }, [])
+
+  // RL-007: Check if wallet is tracked
+  const isWalletTracked = useCallback((wallet: string) => {
+    return trackedWallets.has(wallet.toLowerCase())
+  }, [trackedWallets])
 
   // Calculate current price from bonding curve
   const currentPrice = (() => {
@@ -242,6 +294,28 @@ export function TransactionFeed({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* RL-007: Tracked Only Filter */}
+          {trackedWallets.size > 0 && (
+            <button
+              onClick={() => setShowTrackedOnly(!showTrackedOnly)}
+              style={{
+                padding: '4px 8px',
+                backgroundColor: showTrackedOnly ? 'rgba(168,85,247,0.2)' : 'transparent',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '4px',
+                color: showTrackedOnly ? '#c084fc' : '#666',
+                fontSize: '10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              title={showTrackedOnly ? 'Show all transactions' : 'Show tracked wallets only'}
+            >
+              👁️ {trackedWallets.size}
+            </button>
+          )}
+
           {/* Sound Toggle */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
@@ -278,10 +352,10 @@ export function TransactionFeed({
         </div>
       </div>
 
-      {/* Column Headers */}
+      {/* Column Headers - RL-007: Updated grid for tracking button */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '60px 1fr 90px 100px 70px',
+        gridTemplateColumns: '60px 1fr 90px 120px 70px',
         gap: '8px',
         padding: '8px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
@@ -308,36 +382,58 @@ export function TransactionFeed({
           overflowX: 'hidden',
         }}
       >
-        {transactions.length === 0 ? (
-          <div style={{
-            padding: '40px 16px',
-            textAlign: 'center',
-            color: '#666',
-            fontSize: '12px',
-          }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>📊</div>
-            <div>Waiting for transactions...</div>
-            <div style={{ marginTop: '4px', fontSize: '11px', color: '#444' }}>
-              Buy or sell {tokenSymbol} to see activity
-            </div>
-          </div>
-        ) : (
-          transactions.map((tx, index) => (
-            <div
-              key={tx.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '60px 1fr 90px 100px 70px',
-                gap: '8px',
-                padding: '10px 16px',
-                borderBottom: '1px solid rgba(255,255,255,0.02)',
-                backgroundColor: index === 0 && !isPaused
-                  ? tx.type === 'buy' ? 'rgba(0,255,0,0.08)' : 'rgba(239,68,68,0.08)'
-                  : 'transparent',
-                transition: 'background-color 0.3s ease',
-                animation: index === 0 && !isPaused ? 'fadeIn 0.3s ease' : 'none',
-              }}
-            >
+        {/* RL-007: Filter transactions by tracked wallets if enabled */}
+        {(() => {
+          const filteredTxs = showTrackedOnly
+            ? transactions.filter(tx => isWalletTracked(tx.wallet))
+            : transactions
+
+          if (filteredTxs.length === 0) {
+            return (
+              <div style={{
+                padding: '40px 16px',
+                textAlign: 'center',
+                color: '#666',
+                fontSize: '12px',
+              }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>
+                  {showTrackedOnly ? '👁️' : '📊'}
+                </div>
+                <div>
+                  {showTrackedOnly
+                    ? 'No transactions from tracked wallets'
+                    : 'Waiting for transactions...'}
+                </div>
+                <div style={{ marginTop: '4px', fontSize: '11px', color: '#444' }}>
+                  {showTrackedOnly
+                    ? 'Track a wallet by clicking the ★ next to their address'
+                    : `Buy or sell ${tokenSymbol} to see activity`}
+                </div>
+              </div>
+            )
+          }
+
+          return filteredTxs.map((tx, index) => {
+            const isTracked = isWalletTracked(tx.wallet)
+            return (
+              <div
+                key={tx.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '60px 1fr 90px 120px 70px',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  borderBottom: '1px solid rgba(255,255,255,0.02)',
+                  backgroundColor: isTracked
+                    ? 'rgba(168,85,247,0.1)'
+                    : index === 0 && !isPaused
+                      ? tx.type === 'buy' ? 'rgba(0,255,0,0.08)' : 'rgba(239,68,68,0.08)'
+                      : 'transparent',
+                  transition: 'background-color 0.3s ease',
+                  animation: index === 0 && !isPaused ? 'fadeIn 0.3s ease' : 'none',
+                  borderLeft: isTracked ? '2px solid #c084fc' : '2px solid transparent',
+                }}
+              >
               {/* Type */}
               <span style={{
                 display: 'flex',
@@ -381,30 +477,56 @@ export function TransactionFeed({
                 {tx.price} PLS
               </span>
 
-              {/* Wallet */}
-              <a
-                href={`${PULSESCAN_URL}/address/${tx.wallet}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: '11px',
-                  color: '#888',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#00ff00'
-                  e.currentTarget.style.textDecoration = 'underline'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#888'
-                  e.currentTarget.style.textDecoration = 'none'
-                }}
-                title={`View ${tx.wallet} on PulseScan`}
-              >
-                {formatWallet(tx.wallet)}
-              </a>
+              {/* Wallet - RL-007: Added tracking button */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleWalletTracking(tx.wallet)
+                  }}
+                  style={{
+                    padding: '2px 4px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '10px',
+                    color: isTracked ? '#c084fc' : '#444',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isTracked) e.currentTarget.style.color = '#c084fc'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isTracked) e.currentTarget.style.color = '#444'
+                  }}
+                  title={isTracked ? 'Stop tracking this wallet' : 'Track this wallet'}
+                >
+                  {isTracked ? '★' : '☆'}
+                </button>
+                <a
+                  href={`${PULSESCAN_URL}/address/${tx.wallet}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    color: isTracked ? '#c084fc' : '#888',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#00ff00'
+                    e.currentTarget.style.textDecoration = 'underline'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isTracked ? '#c084fc' : '#888'
+                    e.currentTarget.style.textDecoration = 'none'
+                  }}
+                  title={`View ${tx.wallet} on PulseScan`}
+                >
+                  {formatWallet(tx.wallet)}
+                </a>
+              </div>
 
               {/* Time */}
               <a
@@ -427,11 +549,12 @@ export function TransactionFeed({
                 {formatTime(tx.timestamp)}
               </a>
             </div>
-          ))
-        )}
+            )
+          })
+        })()}
       </div>
 
-      {/* Footer Stats */}
+      {/* Footer Stats - RL-007: Added tracked wallet count */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -446,8 +569,15 @@ export function TransactionFeed({
           {transactions.filter(t => t.type === 'buy').length} buys /{' '}
           {transactions.filter(t => t.type === 'sell').length} sells
         </span>
-        <span>
-          {transactions.length} transactions
+        <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {trackedWallets.size > 0 && (
+            <span style={{ color: '#c084fc' }}>
+              ★ {trackedWallets.size} tracked
+            </span>
+          )}
+          <span>
+            {transactions.length} transactions
+          </span>
         </span>
       </div>
 

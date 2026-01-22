@@ -20,8 +20,9 @@ interface LayoutContextValue {
   bringToFront: (boxId: string) => void
   zIndexMap: ZIndexMap
 
-  // Reset
+  // Reset & Apply
   resetLayout: () => void
+  applyLayout: (layout: LayoutState) => void
 }
 
 const LayoutContext = createContext<LayoutContextValue | null>(null)
@@ -33,6 +34,7 @@ interface LayoutProviderProps {
 export function LayoutProvider({ children }: LayoutProviderProps) {
   const {
     savedLayout,
+    saveLayout,
     saveBoxLayout,
     resetLayout,
     isLoaded,
@@ -69,6 +71,16 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     }
   }, [savedLayout, saveBoxLayout])
 
+  // RL-006: Apply a complete layout state (for shared UI import)
+  const applyLayout = useCallback((layout: LayoutState) => {
+    saveLayout(layout)
+    // RALPH RL-006 VALIDATION
+    console.log('[RALPH RL-006] Full layout applied:', {
+      boxCount: Object.keys(layout).length,
+      boxes: Object.keys(layout),
+    })
+  }, [saveLayout])
+
   const value: LayoutContextValue = {
     layouts: savedLayout,
     isLoaded,
@@ -80,6 +92,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     bringToFront,
     zIndexMap,
     resetLayout,
+    applyLayout,
   }
 
   return (

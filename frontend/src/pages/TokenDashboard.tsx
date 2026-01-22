@@ -9,6 +9,7 @@ import { TransactionFeed } from '../components/TransactionFeed'
 import { MessageBoard } from '../components/MessageBoard'
 import { DraggableResizableBox } from '../components/ui/DraggableResizableBox'
 import { FrameSelector } from '../components/ui/FrameSelector'
+import { SharedUIManager } from '../components/ui/SharedUIManager'
 import { useLayout } from '../context/LayoutContext'
 import { useCustomFrames } from '../hooks/useCustomFrames'
 
@@ -652,6 +653,9 @@ export function TokenDashboard() {
           >
             📝 Board {!canAccessBoard && '🔒'}
           </button>
+
+          {/* RL-006: Shared UI Manager */}
+          <SharedUIManager />
 
           <ConnectButton />
         </div>

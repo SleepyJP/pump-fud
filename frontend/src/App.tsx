@@ -12,6 +12,7 @@ import { LivestreamsPage } from './pages/LivestreamsPage'
 import { LiveChatPopup } from './pages/LiveChatPopup'
 import { MessageBoardPopup } from './pages/MessageBoardPopup'
 import { LeaderboardPage } from './pages/LeaderboardPage'
+import { LayoutProvider } from './context/LayoutContext'
 
 // Full-bleed routes don't show sidebar/chrome
 const FULL_BLEED_ROUTES = ['/', '/launch', '/live-chat', '/message-board', '/leaderboard']
@@ -36,7 +37,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/launch" element={<LaunchPage />} />
-          <Route path="/dashboard/:tokenId" element={<TokenDashboard />} />
+          <Route path="/dashboard/:tokenId" element={<LayoutProvider><TokenDashboard /></LayoutProvider>} />
           <Route path="/live-chat" element={<LiveChatPopup />} />
           <Route path="/message-board" element={<MessageBoardPopup />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />

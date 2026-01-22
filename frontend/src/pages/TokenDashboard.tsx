@@ -7,6 +7,8 @@ import { PUMP_FUD_ADDRESS, PUMP_FUD_ABI, LEADERBOARD_ADDRESS, LEADERBOARD_ABI } 
 import { CandlestickChart } from '../components/CandlestickChart'
 import { TransactionFeed } from '../components/TransactionFeed'
 import { MessageBoard } from '../components/MessageBoard'
+import { DraggableResizableBox } from '../components/ui/DraggableResizableBox'
+import { useLayout } from '../context/LayoutContext'
 
 interface SocialLinks {
   twitter?: string
@@ -124,6 +126,16 @@ export function TokenDashboard() {
   const [slippage, setSlippage] = useState('5')
   const [referralRegistered, setReferralRegistered] = useState(false)
   const [showLivestream, setShowLivestream] = useState(true)
+
+  // RALPH RL-001/003/004: Layout management for draggable boxes
+  const {
+    getBoxLayout,
+    updateBoxPosition,
+    updateBoxSize,
+    getZIndex,
+    bringToFront,
+    isLoaded,
+  } = useLayout()
 
   const tokenAddress = tokenIdParam as `0x${string}` | undefined
   const refParam = searchParams.get('ref')
@@ -426,7 +438,7 @@ export function TokenDashboard() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* Background Image - Varies per token */}
+      {/* Background Image - Varies per token - RALPH RL-010: Increased from 0.12 to 0.28 */}
       <div style={{
         position: 'fixed',
         inset: 0,
@@ -434,16 +446,16 @@ export function TokenDashboard() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.12,
+        opacity: 0.28,
         zIndex: 0,
       }} />
-      {/* Dark Gradient Overlay */}
+      {/* Dark Gradient Overlay - Adjusted for better background visibility */}
       <div style={{
         position: 'fixed',
         inset: 0,
         background: `
-          linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.6) 50%, rgba(10,10,10,0.9) 100%),
-          radial-gradient(ellipse at 50% 0%, rgba(0,255,0,0.08) 0%, transparent 40%)
+          linear-gradient(180deg, rgba(10,10,10,0.75) 0%, rgba(10,10,10,0.45) 50%, rgba(10,10,10,0.8) 100%),
+          radial-gradient(ellipse at 50% 0%, rgba(0,255,0,0.1) 0%, transparent 40%)
         `,
         zIndex: 1,
         pointerEvents: 'none',
@@ -636,34 +648,26 @@ export function TokenDashboard() {
       </header>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          MAIN CONTENT - Chart + Trade Panel + Transaction Feed + Message Board
+          MAIN CONTENT - Draggable Boxes (Chart, Trade Panel, Transaction Feed, Message Board)
+          RALPH RL-001: Draggable Core System
+          RALPH RL-002: Resizable System
+          RALPH RL-003: Position/Size Persistence
+          RALPH RL-004: Z-Index Management
           ═══════════════════════════════════════════════════════════════════ */}
       <main style={{
         flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        padding: '16px 24px',
-        overflow: 'auto',
-        zIndex: 2,
         position: 'relative',
+        overflow: 'hidden',
+        zIndex: 2,
       }}>
         {/* ═══════════════════════════════════════════════════════════════════
-            ROW 1 - Chart (70%) + Trade Panel (30%)
+            FIXED TOP SECTION - Stats + Description/Socials
             ═══════════════════════════════════════════════════════════════════ */}
         <div style={{
-          display: 'flex',
-          gap: '16px',
-          minHeight: '500px',
+          padding: '16px 24px',
+          position: 'relative',
+          zIndex: 50,
         }}>
-          {/* LEFT - Chart + Stats */}
-          <div style={{
-            flex: '0 0 70%',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            minWidth: 0,
-          }}>
           {/* Stats Row */}
           <div style={{
             display: 'grid',
@@ -809,161 +813,182 @@ export function TokenDashboard() {
             </div>
           )}
 
-          {/* Livestream Embed - Shows when creator has livestream URL */}
-          {(() => {
-            const livestreamUrl = token.socials?.livestreamUrl || token.socials?.youtubeStream || token.socials?.twitch || token.socials?.kick
-            const embed = livestreamUrl ? getLivestreamEmbed(livestreamUrl) : null
+        </div>
 
-            if (!embed) return null
+        {/* ═══════════════════════════════════════════════════════════════════
+            DRAGGABLE BOXES CONTAINER
+            RALPH RL-001: Draggable Core System
+            RALPH RL-002: Resizable System
+            RALPH RL-003: Position/Size Persistence
+            RALPH RL-004: Z-Index Management
+            ═══════════════════════════════════════════════════════════════════ */}
+        {isLoaded && (
+          <div style={{
+            position: 'absolute',
+            top: '180px',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            overflow: 'hidden',
+          }}>
+            {/* ═══════════════════════════════════════════════════════════════════
+                CHART BOX - Draggable & Resizable
+                ═══════════════════════════════════════════════════════════════════ */}
+            <DraggableResizableBox
+              id="chart-box"
+              defaultPosition={getBoxLayout('chart-box')?.position || { x: 20, y: 0 }}
+              defaultSize={getBoxLayout('chart-box')?.size || { width: 800, height: 500 }}
+              minSize={{ width: 400, height: 300 }}
+              maxSize={{ width: 1200, height: 800 }}
+              onPositionChange={(pos) => {
+                updateBoxPosition('chart-box', pos)
+                console.log('[RALPH RL-001] Chart box position saved:', pos)
+              }}
+              onSizeChange={(size) => {
+                updateBoxSize('chart-box', size)
+                console.log('[RALPH RL-002] Chart box size saved:', size)
+              }}
+              zIndex={getZIndex('chart-box')}
+              onFocus={() => {
+                bringToFront('chart-box')
+                console.log('[RALPH RL-004] Chart box brought to front')
+              }}
+              title="📊 PRICE CHART"
+            >
+              <div style={{ padding: '12px', height: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Livestream Embed - Shows when creator has livestream URL */}
+                {(() => {
+                  const livestreamUrl = token.socials?.livestreamUrl || token.socials?.youtubeStream || token.socials?.twitch || token.socials?.kick
+                  const embed = livestreamUrl ? getLivestreamEmbed(livestreamUrl) : null
 
-            return (
-              <div style={{
-                backgroundColor: 'rgba(26,26,26,0.9)',
-                borderRadius: '12px',
-                border: '1px solid rgba(0,255,0,0.1)',
-                overflow: 'hidden',
-                backdropFilter: 'blur(5px)',
-              }}>
-                {/* Livestream Header */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderBottom: '1px solid rgba(0,255,0,0.1)',
-                  backgroundColor: 'rgba(0,255,0,0.05)',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '14px', animation: 'pulse 2s ease-in-out infinite' }}>🟢</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#00ff00' }}>
-                      LIVE on {embed.platform}
-                    </span>
-                    <span style={{
-                      padding: '2px 8px',
-                      backgroundColor: 'rgba(0,255,0,0.2)',
-                      borderRadius: '4px',
-                      fontSize: '10px',
-                      color: '#00ff00',
-                      fontWeight: 700,
+                  if (!embed) return null
+
+                  return (
+                    <div style={{
+                      backgroundColor: 'rgba(0,0,0,0.4)',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,255,0,0.1)',
+                      overflow: 'hidden',
                     }}>
-                      STREAMING
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setShowLivestream(!showLivestream)}
-                    style={{
-                      padding: '4px 12px',
-                      backgroundColor: 'transparent',
-                      border: '1px solid rgba(0,255,0,0.3)',
-                      borderRadius: '4px',
-                      color: '#888',
-                      fontSize: '11px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {showLivestream ? 'Hide' : 'Show'}
-                  </button>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        borderBottom: '1px solid rgba(0,255,0,0.1)',
+                        backgroundColor: 'rgba(0,255,0,0.05)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '12px', animation: 'pulse 2s ease-in-out infinite' }}>🟢</span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: '#00ff00' }}>
+                            LIVE on {embed.platform}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setShowLivestream(!showLivestream)}
+                          style={{
+                            padding: '2px 8px',
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(0,255,0,0.3)',
+                            borderRadius: '4px',
+                            color: '#888',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {showLivestream ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                      {showLivestream && (
+                        <div style={{ position: 'relative', width: '100%', paddingTop: '40%' }}>
+                          <iframe
+                            src={embed.embedUrl}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              border: 'none',
+                            }}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+
+                {/* Candlestick Chart */}
+                <div style={{ flex: 1, minHeight: '200px' }}>
+                  <CandlestickChart
+                    tokenAddress={tokenAddress || ''}
+                    reserveBalance={token.reserveBalance}
+                    tokensSold={token.tokensSold}
+                    launchTime={token.launchTime}
+                    themeColor={theme.primary}
+                  />
                 </div>
 
-                {/* Livestream Player */}
-                {showLivestream && (
+                {/* Graduation Progress */}
+                {!token.graduated && (
                   <div style={{
-                    position: 'relative',
-                    width: '100%',
-                    paddingTop: '56.25%', // 16:9 aspect ratio
+                    padding: '10px 12px',
+                    backgroundColor: 'rgba(0,0,0,0.4)',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(0,255,0,0.1)',
                   }}>
-                    <iframe
-                      src={embed.embedUrl}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', color: '#888' }}>Progress to Graduation</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#00ff00', fontWeight: 700 }}>
+                        {graduationProgress.toFixed(1)}% / 50M PLS
+                      </span>
+                    </div>
+                    <div style={{
+                      height: '6px',
+                      backgroundColor: '#252525',
+                      borderRadius: '3px',
+                      overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        width: `${graduationProgress}%`,
                         height: '100%',
-                        border: 'none',
-                      }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                        background: 'linear-gradient(90deg, #00ff00 0%, #00cc00 100%)',
+                        boxShadow: '0 0 8px rgba(0,255,0,0.6)',
+                      }} />
+                    </div>
                   </div>
                 )}
               </div>
-            )
-          })()}
+            </DraggableResizableBox>
 
-          {/* Candlestick Chart */}
-          <div style={{
-            backgroundColor: 'rgba(26,26,26,0.9)',
-            borderRadius: '12px',
-            border: '1px solid rgba(0,255,0,0.1)',
-            padding: '16px',
-            flex: 1,
-            minHeight: '400px',
-            backdropFilter: 'blur(5px)',
-          }}>
-            <CandlestickChart
-              tokenAddress={tokenAddress || ''}
-              reserveBalance={token.reserveBalance}
-              tokensSold={token.tokensSold}
-              launchTime={token.launchTime}
-              themeColor={theme.primary}
-            />
-          </div>
-
-          {/* Graduation Progress */}
-          {!token.graduated && (
-            <div style={{
-              padding: '14px 18px',
-              backgroundColor: 'rgba(26,26,26,0.9)',
-              borderRadius: '8px',
-              border: '1px solid rgba(0,255,0,0.1)',
-              backdropFilter: 'blur(5px)',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: '#888' }}>Progress to Graduation</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#00ff00', fontWeight: 700 }}>
-                  {graduationProgress.toFixed(1)}% / 50M PLS
-                </span>
-              </div>
-              <div style={{
-                height: '8px',
-                backgroundColor: '#252525',
-                borderRadius: '4px',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  width: `${graduationProgress}%`,
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #00ff00 0%, #00cc00 100%)',
-                  boxShadow: '0 0 10px rgba(0,255,0,0.6)',
-                }} />
-              </div>
-            </div>
-          )}
-        </div>
-
-          {/* RIGHT - Trade Panel (30%) */}
-          <div style={{
-            flex: '0 0 30%',
-            maxWidth: '400px',
-            minWidth: '320px',
-            backgroundColor: 'rgba(26,26,26,0.95)',
-            borderRadius: '12px',
-            border: '1px solid rgba(0,255,0,0.15)',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'auto',
-            backdropFilter: 'blur(10px)',
-          }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '18px' }}>💱</span>
-            <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>
-              Trade {token.symbol}
-            </h2>
-          </div>
-
-          {/* Buy/Sell/Burn Tabs */}
+            {/* ═══════════════════════════════════════════════════════════════════
+                TRADE PANEL BOX - Draggable & Resizable
+                ═══════════════════════════════════════════════════════════════════ */}
+            <DraggableResizableBox
+              id="swapper-box"
+              defaultPosition={getBoxLayout('swapper-box')?.position || { x: 840, y: 0 }}
+              defaultSize={getBoxLayout('swapper-box')?.size || { width: 380, height: 620 }}
+              minSize={{ width: 320, height: 400 }}
+              maxSize={{ width: 500, height: 900 }}
+              onPositionChange={(pos) => {
+                updateBoxPosition('swapper-box', pos)
+                console.log('[RALPH RL-001] Trade panel position saved:', pos)
+              }}
+              onSizeChange={(size) => {
+                updateBoxSize('swapper-box', size)
+                console.log('[RALPH RL-002] Trade panel size saved:', size)
+              }}
+              zIndex={getZIndex('swapper-box')}
+              onFocus={() => {
+                bringToFront('swapper-box')
+                console.log('[RALPH RL-004] Trade panel brought to front')
+              }}
+              title={`💱 TRADE ${token.symbol}`}
+            >
+              <div style={{ padding: '16px', height: '100%', overflow: 'auto' }}>
+                {/* Buy/Sell/Burn Tabs */}
           <div style={{
             display: 'flex',
             gap: '4px',
@@ -1321,48 +1346,78 @@ export function TokenDashboard() {
               </button>
             </div>
           </div>
-        </div>
-        </div>
+              </div>
+            </DraggableResizableBox>
 
-        {/* ═══════════════════════════════════════════════════════════════════
-            ROW 2 - Transaction Feed (50%) + Message Board (50%)
-            ═══════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          minHeight: '400px',
-        }}>
-          {/* LEFT - Transaction Feed (50%) */}
-          <div style={{
-            flex: 1,
-            minWidth: 0,
-          }}>
-            <TransactionFeed
-              tokenAddress={tokenAddress as `0x${string}`}
-              tokenSymbol={token.symbol}
-              reserveBalance={token.reserveBalance}
-              tokensSold={token.tokensSold}
-            />
-          </div>
+            {/* ═══════════════════════════════════════════════════════════════════
+                TRANSACTION FEED BOX - Draggable & Resizable
+                ═══════════════════════════════════════════════════════════════════ */}
+            <DraggableResizableBox
+              id="transaction-feed-box"
+              defaultPosition={getBoxLayout('transaction-feed-box')?.position || { x: 20, y: 520 }}
+              defaultSize={getBoxLayout('transaction-feed-box')?.size || { width: 600, height: 350 }}
+              minSize={{ width: 350, height: 250 }}
+              maxSize={{ width: 900, height: 600 }}
+              onPositionChange={(pos) => {
+                updateBoxPosition('transaction-feed-box', pos)
+                console.log('[RALPH RL-001] Transaction feed position saved:', pos)
+              }}
+              onSizeChange={(size) => {
+                updateBoxSize('transaction-feed-box', size)
+                console.log('[RALPH RL-002] Transaction feed size saved:', size)
+              }}
+              zIndex={getZIndex('transaction-feed-box')}
+              onFocus={() => {
+                bringToFront('transaction-feed-box')
+                console.log('[RALPH RL-004] Transaction feed brought to front')
+              }}
+              title="📈 TRANSACTION FEED"
+            >
+              <div style={{ height: '100%' }}>
+                <TransactionFeed
+                  tokenAddress={tokenAddress as `0x${string}`}
+                  tokenSymbol={token.symbol}
+                  reserveBalance={token.reserveBalance}
+                  tokensSold={token.tokensSold}
+                />
+              </div>
+            </DraggableResizableBox>
 
-          {/* RIGHT - Message Board (50%) */}
-          <div style={{
-            flex: 1,
-            minWidth: 0,
-            backgroundColor: 'rgba(26,26,26,0.9)',
-            borderRadius: '12px',
-            border: '1px solid rgba(0,255,0,0.1)',
-            overflow: 'hidden',
-            backdropFilter: 'blur(5px)',
-          }}>
-            <MessageBoard
-              tokenSymbol={token.symbol}
-              holderPercentage={holderPercentage}
-              primaryColor={theme.primary}
-              secondaryColor={theme.secondary}
-            />
+            {/* ═══════════════════════════════════════════════════════════════════
+                MESSAGE BOARD BOX - Draggable & Resizable
+                ═══════════════════════════════════════════════════════════════════ */}
+            <DraggableResizableBox
+              id="message-board-box"
+              defaultPosition={getBoxLayout('message-board-box')?.position || { x: 640, y: 520 }}
+              defaultSize={getBoxLayout('message-board-box')?.size || { width: 600, height: 350 }}
+              minSize={{ width: 350, height: 250 }}
+              maxSize={{ width: 900, height: 600 }}
+              onPositionChange={(pos) => {
+                updateBoxPosition('message-board-box', pos)
+                console.log('[RALPH RL-001] Message board position saved:', pos)
+              }}
+              onSizeChange={(size) => {
+                updateBoxSize('message-board-box', size)
+                console.log('[RALPH RL-002] Message board size saved:', size)
+              }}
+              zIndex={getZIndex('message-board-box')}
+              onFocus={() => {
+                bringToFront('message-board-box')
+                console.log('[RALPH RL-004] Message board brought to front')
+              }}
+              title="💬 MESSAGE BOARD"
+            >
+              <div style={{ height: '100%' }}>
+                <MessageBoard
+                  tokenSymbol={token.symbol}
+                  holderPercentage={holderPercentage}
+                  primaryColor={theme.primary}
+                  secondaryColor={theme.secondary}
+                />
+              </div>
+            </DraggableResizableBox>
           </div>
-        </div>
+        )}
       </main>
 
       {/* CSS Animations */}

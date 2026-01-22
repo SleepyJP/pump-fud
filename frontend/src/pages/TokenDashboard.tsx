@@ -14,7 +14,7 @@ import { FeeVerification } from '../components/ui/FeeVerification'
 import { AdCarousel } from '../components/ui/AdCarousel'
 import { useLayout } from '../context/LayoutContext'
 import { useCustomFrames } from '../hooks/useCustomFrames'
-import { DashboardProvider, DashboardControls, CollapsibleStatsBar } from '../components/Dashboard'
+import { DashboardProvider, DashboardControls, CollapsibleStatsBar, useDashboard } from '../components/Dashboard'
 
 interface SocialLinks {
   twitter?: string
@@ -112,6 +112,13 @@ const ERC20_ABI = [
 ] as const
 
 const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD' as const
+
+// Lock-aware wrapper that bridges Dashboard context to draggable boxes
+function DashboardLockBridge({ children }: { children: (isLocked: boolean) => React.ReactNode }) {
+  const { isLocked } = useDashboard()
+  console.log('[RALPH] Dashboard lock state:', isLocked ? 'LOCKED' : 'UNLOCKED')
+  return <>{children(isLocked)}</>
+}
 
 // Background images for variety
 const BACKGROUND_IMAGES = [
@@ -831,6 +838,8 @@ export function TokenDashboard() {
             RALPH RL-004: Z-Index Management
             ═══════════════════════════════════════════════════════════════════ */}
         {isLoaded && (
+          <DashboardLockBridge>
+            {(isLocked) => (
           <div style={{
             position: 'absolute',
             top: '180px',
@@ -848,6 +857,7 @@ export function TokenDashboard() {
               defaultSize={getBoxLayout('chart-box')?.size || { width: 800, height: 500 }}
               minSize={{ width: 400, height: 300 }}
               maxSize={{ width: 1200, height: 800 }}
+              disabled={isLocked}
               onPositionChange={(pos) => {
                 updateBoxPosition('chart-box', pos)
                 console.log('[RALPH RL-001] Chart box position saved:', pos)
@@ -993,6 +1003,7 @@ export function TokenDashboard() {
               defaultSize={getBoxLayout('swapper-box')?.size || { width: 380, height: 620 }}
               minSize={{ width: 320, height: 400 }}
               maxSize={{ width: 500, height: 900 }}
+              disabled={isLocked}
               onPositionChange={(pos) => {
                 updateBoxPosition('swapper-box', pos)
                 console.log('[RALPH RL-001] Trade panel position saved:', pos)
@@ -1392,6 +1403,7 @@ export function TokenDashboard() {
               defaultSize={getBoxLayout('transaction-feed-box')?.size || { width: 600, height: 350 }}
               minSize={{ width: 350, height: 250 }}
               maxSize={{ width: 900, height: 600 }}
+              disabled={isLocked}
               onPositionChange={(pos) => {
                 updateBoxPosition('transaction-feed-box', pos)
                 console.log('[RALPH RL-001] Transaction feed position saved:', pos)
@@ -1439,6 +1451,7 @@ export function TokenDashboard() {
               defaultSize={getBoxLayout('message-board-box')?.size || { width: 600, height: 350 }}
               minSize={{ width: 350, height: 250 }}
               maxSize={{ width: 900, height: 600 }}
+              disabled={isLocked}
               onPositionChange={(pos) => {
                 updateBoxPosition('message-board-box', pos)
                 console.log('[RALPH RL-001] Message board position saved:', pos)
@@ -1477,6 +1490,8 @@ export function TokenDashboard() {
               </div>
             </DraggableResizableBox>
           </div>
+            )}
+          </DashboardLockBridge>
         )}
       </main>
 

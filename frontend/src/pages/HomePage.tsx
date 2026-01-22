@@ -111,6 +111,14 @@ export function HomePage() {
     return `${Math.floor(diff / 86400)}d ago`
   }
 
+  // Dynamic backgrounds per filter - visible but not overbearing (0.28 opacity)
+  const backgroundMap: Record<FilterOption, string> = {
+    live: '/backgrounds/main-edited.jpg',           // Cathedral vending machine vibe
+    rising: '/backgrounds/stained-glass.jpg',       // Green stained glass cathedral  
+    new: '/backgrounds/fantasy-tree-maze.png',      // Enchanted tree portal
+    graduated: '/backgrounds/launch-altar.png',     // Celebratory altar
+  }
+
   return (
     <div style={{
       position: 'fixed',
@@ -120,16 +128,17 @@ export function HomePage() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* Cathedral Background */}
+      {/* Dynamic Filter Background - 28% opacity for visibility */}
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/main-edited.jpg)',
+        backgroundImage: `url(${backgroundMap[filter]})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.15,
+        opacity: 0.28,
         zIndex: 0,
+        transition: 'background-image 0.5s ease-in-out',
       }} />
       {/* Dark Gradient Overlay */}
       <div style={{
@@ -137,7 +146,7 @@ export function HomePage() {
         inset: 0,
         background: `
           linear-gradient(180deg, rgba(10,10,10,0.7) 0%, rgba(10,10,10,0.4) 30%, rgba(10,10,10,0.6) 70%, rgba(10,10,10,0.95) 100%),
-          radial-gradient(ellipse at 50% 0%, rgba(220,20,60,0.08) 0%, transparent 50%)
+          radial-gradient(ellipse at 50% 0%, rgba(0,255,0,0.08) 0%, transparent 50%)
         `,
         zIndex: 1,
         pointerEvents: 'none',
@@ -148,7 +157,7 @@ export function HomePage() {
       <header style={{
         height: '60px',
         backgroundColor: 'rgba(26,26,26,0.95)',
-        borderBottom: '1px solid rgba(220,20,60,0.2)',
+        borderBottom: '1px solid rgba(0,255,0,0.2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -169,13 +178,14 @@ export function HomePage() {
               cursor: 'pointer',
             }}
           >
-            <span style={{ fontSize: '28px' }}>🔥</span>
+            <img src="/images/pump-pill-neon.png" alt="PUMP.FUD" style={{ width: '32px', height: '32px' }} />
             <span style={{
               fontFamily: 'Cinzel, serif',
               fontSize: '20px',
               fontWeight: 700,
-              color: '#dc143c',
+              color: '#00ff00',
               letterSpacing: '0.1em',
+              textShadow: '0 0 10px rgba(0,255,0,0.5)',
             }}>
               PUMP.FUD
             </span>
@@ -195,7 +205,7 @@ export function HomePage() {
                   fontSize: '13px',
                   fontWeight: 600,
                   transition: 'all 0.2s ease',
-                  backgroundColor: filter === f.key ? '#dc143c' : 'transparent',
+                  backgroundColor: filter === f.key ? '#00cc00' : 'transparent',
                   color: filter === f.key ? '#fff' : '#888',
                 }}
               >

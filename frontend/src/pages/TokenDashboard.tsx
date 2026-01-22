@@ -4,13 +4,16 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { formatEther, parseEther, isAddress } from 'viem'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { PUMP_FUD_ADDRESS, PUMP_FUD_ABI, LEADERBOARD_ADDRESS, LEADERBOARD_ABI } from '../config/wagmi'
-import { PriceChart } from '../components/PriceChart'
+import { CandlestickChart } from '../components/CandlestickChart'
+import { TransactionFeed } from '../components/TransactionFeed'
 import { MessageBoard } from '../components/MessageBoard'
 
 interface SocialLinks {
   twitter?: string
   telegram?: string
   website?: string
+  discord?: string
+  instagram?: string
   livestreamUrl?: string
   youtubeStream?: string
   twitch?: string
@@ -102,6 +105,15 @@ const ERC20_ABI = [
 
 const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD' as const
 
+// Background images for variety
+const BACKGROUND_IMAGES = [
+  '/backgrounds/main-edited.jpg',
+  '/backgrounds/cathedral-interior.jpg',
+  '/backgrounds/home-cathedral.jpg',
+  '/backgrounds/live-tokens-cathedral.jpg',
+  '/backgrounds/stained-glass.jpg',
+]
+
 export function TokenDashboard() {
   const { tokenId: tokenIdParam } = useParams<{ tokenId: string }>()
   const [searchParams] = useSearchParams()
@@ -116,6 +128,13 @@ export function TokenDashboard() {
   const tokenAddress = tokenIdParam as `0x${string}` | undefined
   const refParam = searchParams.get('ref')
   const leaderboardDeployed = true
+
+  // Select background based on token address hash
+  const backgroundImage = useMemo(() => {
+    if (!tokenAddress) return BACKGROUND_IMAGES[0]
+    const hash = parseInt(tokenAddress.slice(2, 8), 16)
+    return BACKGROUND_IMAGES[hash % BACKGROUND_IMAGES.length]
+  }, [tokenAddress])
 
   // Check if user already has a referrer
   const { data: existingReferrer } = useReadContract({
@@ -205,15 +224,12 @@ export function TokenDashboard() {
     return Number((userTokenBalance * 10000n) / totalSupply) / 100
   }, [userTokenBalance, totalSupply])
 
-  const theme = useMemo(() => {
-    if (!tokenAddress) return { primary: '#ffd700', secondary: '#b8860b' }
-    const hash = parseInt(tokenAddress.slice(2, 8), 16)
-    const hue = hash % 360
-    return {
-      primary: `hsl(${hue}, 70%, 50%)`,
-      secondary: `hsl(${hue}, 60%, 40%)`,
-    }
-  }, [tokenAddress])
+  // FIXED: Always use GREEN theme, no dynamic colors
+  const theme = {
+    primary: '#00ff00',
+    secondary: '#00cc00',
+    glow: 'rgba(0, 255, 0, 0.4)',
+  }
 
   const { writeContract, data: hash, isPending, error: writeError, reset: resetWrite } = useWriteContract()
   const { isLoading: isConfirming, isSuccess, error: txError } = useWaitForTransactionReceipt({ hash })
@@ -328,6 +344,10 @@ export function TokenDashboard() {
     }
   }, [writeError, txError, resetWrite])
 
+  // Token-gated access check for chat/board
+  const canAccessChat = holderPercentage >= 1.0 // 1% for live chat
+  const canAccessBoard = holderPercentage >= 0.5 // 0.5% for message board
+
   if (isLoading) {
     return (
       <div style={{
@@ -335,10 +355,23 @@ export function TokenDashboard() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#666',
-        backgroundColor: '#0f0f0f',
+        color: '#00ff00',
+        backgroundColor: '#0a0a0a',
       }}>
-        Loading...
+        <div style={{ textAlign: 'center' }}>
+          <img 
+            src="/images/pump-pill-neon.png" 
+            alt="Loading" 
+            style={{ 
+              width: '80px', 
+              height: '80px', 
+              marginBottom: '16px',
+              animation: 'pulse 2s ease-in-out infinite',
+              filter: 'drop-shadow(0 0 20px rgba(0,255,0,0.6))',
+            }} 
+          />
+          <div style={{ fontSize: '18px', fontFamily: 'monospace' }}>Loading...</div>
+        </div>
       </div>
     )
   }
@@ -352,7 +385,7 @@ export function TokenDashboard() {
         alignItems: 'center',
         justifyContent: 'center',
         color: '#666',
-        backgroundColor: '#0f0f0f',
+        backgroundColor: '#0a0a0a',
         gap: '16px',
       }}>
         <p>Token not found</p>
@@ -362,8 +395,8 @@ export function TokenDashboard() {
             padding: '10px 20px',
             borderRadius: '8px',
             backgroundColor: '#1a1a1a',
-            border: '1px solid #2a2a2a',
-            color: '#fff',
+            border: '1px solid #00ff00',
+            color: '#00ff00',
             cursor: 'pointer',
           }}
         >
@@ -393,15 +426,15 @@ export function TokenDashboard() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* Background Image */}
+      {/* Background Image - Varies per token */}
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundImage: 'url(/backgrounds/main-edited.jpg)',
+        backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.15,
+        opacity: 0.12,
         zIndex: 0,
       }} />
       {/* Dark Gradient Overlay */}
@@ -409,19 +442,20 @@ export function TokenDashboard() {
         position: 'fixed',
         inset: 0,
         background: `
-          linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.5) 50%, rgba(10,10,10,0.9) 100%),
-          radial-gradient(ellipse at 50% 0%, ${theme.primary}15 0%, transparent 40%)
+          linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.6) 50%, rgba(10,10,10,0.9) 100%),
+          radial-gradient(ellipse at 50% 0%, rgba(0,255,0,0.08) 0%, transparent 40%)
         `,
         zIndex: 1,
         pointerEvents: 'none',
       }} />
+      
       {/* ═══════════════════════════════════════════════════════════════════
           HEADER BAR - Full Width
           ═══════════════════════════════════════════════════════════════════ */}
       <header style={{
         height: '60px',
         backgroundColor: 'rgba(26,26,26,0.95)',
-        borderBottom: `1px solid ${theme.primary}30`,
+        borderBottom: '1px solid rgba(0,255,0,0.2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -433,7 +467,7 @@ export function TokenDashboard() {
       }}>
         {/* Left - Back + Logo + Token Info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Back to Home */}
+          {/* Back to Home with Neon Pill Logo */}
           <div
             onClick={() => navigate('/')}
             style={{
@@ -443,20 +477,30 @@ export function TokenDashboard() {
               cursor: 'pointer',
             }}
           >
-            <span style={{ fontSize: '28px' }}>🔥</span>
+            <img 
+              src="/images/pump-pill-neon.png" 
+              alt="PUMP.FUD" 
+              style={{ 
+                width: '36px', 
+                height: '36px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 8px rgba(0,255,0,0.6))',
+              }} 
+            />
             <span style={{
               fontFamily: 'Cinzel, serif',
               fontSize: '18px',
               fontWeight: 700,
-              color: '#dc143c',
+              color: '#00ff00',
               letterSpacing: '0.1em',
+              textShadow: '0 0 10px rgba(0,255,0,0.6), 0 0 20px rgba(0,255,0,0.4)',
             }}>
               PUMP.FUD
             </span>
           </div>
 
           {/* Divider */}
-          <div style={{ width: '1px', height: '30px', backgroundColor: '#2a2a2a' }} />
+          <div style={{ width: '1px', height: '30px', backgroundColor: 'rgba(0,255,0,0.2)' }} />
 
           {/* Token Info */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -469,19 +513,19 @@ export function TokenDashboard() {
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              border: `2px solid ${theme.primary}50`,
+              border: '2px solid rgba(0,255,0,0.3)',
             }}>
               {token.imageUri ? (
                 <img src={token.imageUri} alt={token.symbol} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontSize: '22px' }}>🔥</span>
+                <span style={{ fontSize: '22px' }}>💎</span>
               )}
             </div>
             <div>
               <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
                 {token.name}
               </div>
-              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: theme.primary }}>
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#00ff00' }}>
                 ${token.symbol}
               </div>
             </div>
@@ -490,16 +534,16 @@ export function TokenDashboard() {
             <div style={{
               padding: '4px 10px',
               borderRadius: '4px',
-              backgroundColor: token.graduated ? 'rgba(168,85,247,0.2)' : 'rgba(34,197,94,0.2)',
-              border: `1px solid ${token.graduated ? 'rgba(168,85,247,0.5)' : 'rgba(34,197,94,0.5)'}`,
+              backgroundColor: token.graduated ? 'rgba(168,85,247,0.2)' : 'rgba(0,255,0,0.2)',
+              border: `1px solid ${token.graduated ? 'rgba(168,85,247,0.5)' : 'rgba(0,255,0,0.5)'}`,
               marginLeft: '8px',
             }}>
               <span style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: token.graduated ? '#a855f7' : '#22c55e',
+                color: token.graduated ? '#a855f7' : '#00ff00',
               }}>
-                {token.graduated ? '🎓 Graduated' : '🔴 Live'}
+                {token.graduated ? '🎓 Graduated' : '🟢 Live'}
               </span>
             </div>
           </div>
@@ -513,16 +557,21 @@ export function TokenDashboard() {
             backgroundColor: '#252525',
             borderRadius: '8px',
             textAlign: 'center',
+            border: '1px solid rgba(0,255,0,0.1)',
           }}>
             <div style={{ fontSize: '10px', color: '#666', marginBottom: '2px' }}>Reserve</div>
-            <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: '#22c55e' }}>
+            <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: '#00ff00' }}>
               {formatBalance(token.reserveBalance)} PLS
             </div>
           </div>
 
-          {/* Chat Button */}
+          {/* Chat Button - Token Gated */}
           <button
             onClick={() => {
+              if (!canAccessChat) {
+                alert(`💬 Live Chat requires holding 1% of ${token.symbol} supply.\n\nYour holdings: ${holderPercentage.toFixed(2)}%`)
+                return
+              }
               const params = new URLSearchParams({
                 token: tokenAddress || '',
                 name: token.name,
@@ -534,9 +583,9 @@ export function TokenDashboard() {
             style={{
               padding: '8px 14px',
               borderRadius: '6px',
-              backgroundColor: 'rgba(59,130,246,0.15)',
-              border: '1px solid rgba(59,130,246,0.4)',
-              color: '#60a5fa',
+              backgroundColor: canAccessChat ? 'rgba(0,255,0,0.15)' : 'rgba(100,100,100,0.15)',
+              border: `1px solid ${canAccessChat ? 'rgba(0,255,0,0.4)' : 'rgba(100,100,100,0.4)'}`,
+              color: canAccessChat ? '#00ff00' : '#666',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -544,13 +593,18 @@ export function TokenDashboard() {
               alignItems: 'center',
               gap: '6px',
             }}
+            title={canAccessChat ? 'Open Live Chat' : `Requires 1% ${token.symbol} holdings`}
           >
-            💬 Chat
+            💬 Chat {!canAccessChat && '🔒'}
           </button>
 
-          {/* Board Button */}
+          {/* Board Button - Token Gated */}
           <button
             onClick={() => {
+              if (!canAccessBoard) {
+                alert(`📝 Message Board requires holding 0.5% of ${token.symbol} supply.\n\nYour holdings: ${holderPercentage.toFixed(2)}%`)
+                return
+              }
               const params = new URLSearchParams({
                 token: tokenAddress || '',
                 name: token.name,
@@ -562,9 +616,9 @@ export function TokenDashboard() {
             style={{
               padding: '8px 14px',
               borderRadius: '6px',
-              backgroundColor: 'rgba(168,85,247,0.15)',
-              border: '1px solid rgba(168,85,247,0.4)',
-              color: '#c084fc',
+              backgroundColor: canAccessBoard ? 'rgba(168,85,247,0.15)' : 'rgba(100,100,100,0.15)',
+              border: `1px solid ${canAccessBoard ? 'rgba(168,85,247,0.4)' : 'rgba(100,100,100,0.4)'}`,
+              color: canAccessBoard ? '#c084fc' : '#666',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -572,8 +626,9 @@ export function TokenDashboard() {
               alignItems: 'center',
               gap: '6px',
             }}
+            title={canAccessBoard ? 'Open Message Board' : `Requires 0.5% ${token.symbol} holdings`}
           >
-            📝 Board
+            📝 Board {!canAccessBoard && '🔒'}
           </button>
 
           <ConnectButton />
@@ -581,24 +636,34 @@ export function TokenDashboard() {
       </header>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          MAIN CONTENT - Chart + Trade Panel
+          MAIN CONTENT - Chart + Trade Panel + Transaction Feed + Message Board
           ═══════════════════════════════════════════════════════════════════ */}
       <main style={{
         flex: 1,
         display: 'flex',
+        flexDirection: 'column',
         gap: '16px',
         padding: '16px 24px',
-        overflow: 'hidden',
+        overflow: 'auto',
+        zIndex: 2,
+        position: 'relative',
       }}>
-        {/* LEFT - Chart Area */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            ROW 1 - Chart (70%) + Trade Panel (30%)
+            ═══════════════════════════════════════════════════════════════════ */}
         <div style={{
-          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          minWidth: 0,
-          overflow: 'auto',
+          gap: '16px',
+          minHeight: '500px',
         }}>
+          {/* LEFT - Chart + Stats */}
+          <div style={{
+            flex: '0 0 70%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            minWidth: 0,
+          }}>
           {/* Stats Row */}
           <div style={{
             display: 'grid',
@@ -607,19 +672,20 @@ export function TokenDashboard() {
           }}>
             {[
               { label: 'Total Supply', value: formatBalance(totalSupply), color: '#fff' },
-              { label: 'Tokens Sold', value: formatBalance(token.tokensSold), color: '#22c55e' },
-              { label: 'Your Balance', value: formatBalance(userTokenBalance), color: theme.primary },
-              { label: 'Your Holdings', value: `${holderPercentage.toFixed(2)}%`, color: theme.primary },
+              { label: 'Tokens Sold', value: formatBalance(token.tokensSold), color: '#00ff00' },
+              { label: 'Your Balance', value: formatBalance(userTokenBalance), color: '#00ff00' },
+              { label: 'Your Holdings', value: `${holderPercentage.toFixed(2)}%`, color: '#00ff00' },
               { label: 'Creator', value: `${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`, color: '#888' },
             ].map((stat, i) => (
               <div
                 key={i}
                 style={{
                   padding: '12px',
-                  backgroundColor: '#1a1a1a',
+                  backgroundColor: 'rgba(26,26,26,0.9)',
                   borderRadius: '8px',
-                  border: '1px solid #2a2a2a',
+                  border: '1px solid rgba(0,255,0,0.1)',
                   textAlign: 'center',
+                  backdropFilter: 'blur(5px)',
                 }}
               >
                 <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: stat.color, marginBottom: '4px' }}>
@@ -632,6 +698,117 @@ export function TokenDashboard() {
             ))}
           </div>
 
+          {/* Token Description & Social Links */}
+          {(token.description || Object.keys(token.socials).length > 0) && (
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'rgba(26,26,26,0.9)',
+              borderRadius: '12px',
+              border: '1px solid rgba(0,255,0,0.1)',
+              backdropFilter: 'blur(5px)',
+            }}>
+              {token.description && (
+                <p style={{ 
+                  fontSize: '14px', 
+                  color: '#ccc', 
+                  margin: 0, 
+                  marginBottom: Object.keys(token.socials).length > 0 ? '12px' : 0,
+                  lineHeight: '1.5',
+                }}>
+                  {token.description}
+                </p>
+              )}
+              {Object.keys(token.socials).length > 0 && (
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {token.socials.twitter && (
+                    <a 
+                      href={token.socials.twitter} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(29,155,240,0.2)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(29,155,240,0.4)',
+                        color: '#1DA1F2',
+                        fontSize: '12px',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      🐦 Twitter
+                    </a>
+                  )}
+                  {token.socials.telegram && (
+                    <a 
+                      href={token.socials.telegram} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(0,136,204,0.2)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(0,136,204,0.4)',
+                        color: '#0088cc',
+                        fontSize: '12px',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      ✈️ Telegram
+                    </a>
+                  )}
+                  {token.socials.discord && (
+                    <a 
+                      href={token.socials.discord} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(88,101,242,0.2)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(88,101,242,0.4)',
+                        color: '#5865F2',
+                        fontSize: '12px',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      💬 Discord
+                    </a>
+                  )}
+                  {token.socials.website && (
+                    <a 
+                      href={token.socials.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(0,255,0,0.1)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(0,255,0,0.3)',
+                        color: '#00ff00',
+                        fontSize: '12px',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      🌐 Website
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Livestream Embed - Shows when creator has livestream URL */}
           {(() => {
             const livestreamUrl = token.socials?.livestreamUrl || token.socials?.youtubeStream || token.socials?.twitch || token.socials?.kick
@@ -641,10 +818,11 @@ export function TokenDashboard() {
 
             return (
               <div style={{
-                backgroundColor: '#1a1a1a',
+                backgroundColor: 'rgba(26,26,26,0.9)',
                 borderRadius: '12px',
-                border: '1px solid #2a2a2a',
+                border: '1px solid rgba(0,255,0,0.1)',
                 overflow: 'hidden',
+                backdropFilter: 'blur(5px)',
               }}>
                 {/* Livestream Header */}
                 <div style={{
@@ -652,20 +830,20 @@ export function TokenDashboard() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '10px 14px',
-                  borderBottom: '1px solid #2a2a2a',
-                  backgroundColor: 'rgba(220,20,60,0.1)',
+                  borderBottom: '1px solid rgba(0,255,0,0.1)',
+                  backgroundColor: 'rgba(0,255,0,0.05)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '14px', animation: 'pulse 2s ease-in-out infinite' }}>🔴</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#dc143c' }}>
+                    <span style={{ fontSize: '14px', animation: 'pulse 2s ease-in-out infinite' }}>🟢</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#00ff00' }}>
                       LIVE on {embed.platform}
                     </span>
                     <span style={{
                       padding: '2px 8px',
-                      backgroundColor: 'rgba(34,197,94,0.2)',
+                      backgroundColor: 'rgba(0,255,0,0.2)',
                       borderRadius: '4px',
                       fontSize: '10px',
-                      color: '#22c55e',
+                      color: '#00ff00',
                       fontWeight: 700,
                     }}>
                       STREAMING
@@ -676,7 +854,7 @@ export function TokenDashboard() {
                     style={{
                       padding: '4px 12px',
                       backgroundColor: 'transparent',
-                      border: '1px solid #444',
+                      border: '1px solid rgba(0,255,0,0.3)',
                       borderRadius: '4px',
                       color: '#888',
                       fontSize: '11px',
@@ -713,36 +891,37 @@ export function TokenDashboard() {
             )
           })()}
 
-          {/* Chart */}
+          {/* Candlestick Chart */}
           <div style={{
-            backgroundColor: '#1a1a1a',
+            backgroundColor: 'rgba(26,26,26,0.9)',
             borderRadius: '12px',
-            border: '1px solid #2a2a2a',
+            border: '1px solid rgba(0,255,0,0.1)',
             padding: '16px',
-            height: '350px',
+            flex: 1,
+            minHeight: '400px',
+            backdropFilter: 'blur(5px)',
           }}>
-            <div style={{ width: '100%', height: '100%' }}>
-              <PriceChart
-                tokenAddress={tokenAddress || ''}
-                reserveBalance={token.reserveBalance}
-                tokensSold={token.tokensSold}
-                launchTime={token.launchTime}
-                themeColor={theme.primary}
-              />
-            </div>
+            <CandlestickChart
+              tokenAddress={tokenAddress || ''}
+              reserveBalance={token.reserveBalance}
+              tokensSold={token.tokensSold}
+              launchTime={token.launchTime}
+              themeColor={theme.primary}
+            />
           </div>
 
           {/* Graduation Progress */}
           {!token.graduated && (
             <div style={{
               padding: '14px 18px',
-              backgroundColor: '#1a1a1a',
+              backgroundColor: 'rgba(26,26,26,0.9)',
               borderRadius: '8px',
-              border: '1px solid #2a2a2a',
+              border: '1px solid rgba(0,255,0,0.1)',
+              backdropFilter: 'blur(5px)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ fontSize: '12px', color: '#888' }}>Progress to Graduation</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '12px', color: theme.primary, fontWeight: 700 }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#00ff00', fontWeight: 700 }}>
                   {graduationProgress.toFixed(1)}% / 50M PLS
                 </span>
               </div>
@@ -755,43 +934,28 @@ export function TokenDashboard() {
                 <div style={{
                   width: `${graduationProgress}%`,
                   height: '100%',
-                  background: `linear-gradient(90deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
-                  boxShadow: `0 0 10px ${theme.primary}60`,
+                  background: 'linear-gradient(90deg, #00ff00 0%, #00cc00 100%)',
+                  boxShadow: '0 0 10px rgba(0,255,0,0.6)',
                 }} />
               </div>
             </div>
           )}
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              MESSAGE BOARD - Live Thread Below Chart
-              ═══════════════════════════════════════════════════════════════════ */}
-          <div style={{
-            backgroundColor: '#1a1a1a',
-            borderRadius: '12px',
-            border: '1px solid #2a2a2a',
-            overflow: 'hidden',
-          }}>
-            <MessageBoard
-              tokenSymbol={token.symbol}
-              holderPercentage={holderPercentage}
-              primaryColor={theme.primary}
-              secondaryColor={theme.secondary}
-            />
-          </div>
         </div>
 
-        {/* RIGHT - Trade Panel */}
-        <div style={{
-          width: '360px',
-          flexShrink: 0,
-          backgroundColor: '#1a1a1a',
-          borderRadius: '12px',
-          border: '1px solid #2a2a2a',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'auto',
-        }}>
+          {/* RIGHT - Trade Panel (30%) */}
+          <div style={{
+            flex: '0 0 30%',
+            maxWidth: '400px',
+            minWidth: '320px',
+            backgroundColor: 'rgba(26,26,26,0.95)',
+            borderRadius: '12px',
+            border: '1px solid rgba(0,255,0,0.15)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'auto',
+            backdropFilter: 'blur(10px)',
+          }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <span style={{ fontSize: '18px' }}>💱</span>
             <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>
@@ -822,12 +986,12 @@ export function TokenDashboard() {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   backgroundColor: activeTab === tab
-                    ? tab === 'buy' ? 'rgba(34,197,94,0.2)'
+                    ? tab === 'buy' ? 'rgba(0,255,0,0.2)'
                       : tab === 'sell' ? 'rgba(239,68,68,0.2)'
                         : 'rgba(249,115,22,0.2)'
                     : 'transparent',
                   color: activeTab === tab
-                    ? tab === 'buy' ? '#22c55e'
+                    ? tab === 'buy' ? '#00ff00'
                       : tab === 'sell' ? '#ef4444'
                         : '#f97316'
                     : '#666',
@@ -873,7 +1037,7 @@ export function TokenDashboard() {
                 style={{
                   width: '100%',
                   backgroundColor: '#252525',
-                  border: '1px solid #3a3a3a',
+                  border: '1px solid rgba(0,255,0,0.2)',
                   borderRadius: '8px',
                   padding: '14px',
                   fontSize: '18px',
@@ -924,7 +1088,7 @@ export function TokenDashboard() {
                 style={{
                   padding: '8px',
                   backgroundColor: '#252525',
-                  border: '1px solid #3a3a3a',
+                  border: '1px solid rgba(0,255,0,0.2)',
                   borderRadius: '6px',
                   color: '#888',
                   fontSize: '11px',
@@ -956,10 +1120,10 @@ export function TokenDashboard() {
                     onClick={() => setSlippage(val)}
                     style={{
                       padding: '6px 10px',
-                      backgroundColor: slippage === val ? theme.primary + '30' : 'transparent',
-                      border: `1px solid ${slippage === val ? theme.primary : '#3a3a3a'}`,
+                      backgroundColor: slippage === val ? 'rgba(0,255,0,0.2)' : 'transparent',
+                      border: `1px solid ${slippage === val ? '#00ff00' : '#3a3a3a'}`,
                       borderRadius: '4px',
-                      color: slippage === val ? theme.primary : '#666',
+                      color: slippage === val ? '#00ff00' : '#666',
                       fontSize: '11px',
                       fontFamily: 'monospace',
                       cursor: 'pointer',
@@ -991,8 +1155,8 @@ export function TokenDashboard() {
           {activeTab !== 'burn' && amount && parseFloat(amount) > 0 && (
             <div style={{
               padding: '12px',
-              backgroundColor: 'rgba(34,197,94,0.1)',
-              border: '1px solid rgba(34,197,94,0.3)',
+              backgroundColor: 'rgba(0,255,0,0.1)',
+              border: '1px solid rgba(0,255,0,0.3)',
               borderRadius: '8px',
               marginBottom: '12px',
             }}>
@@ -1000,7 +1164,7 @@ export function TokenDashboard() {
                 <span style={{ fontSize: '12px', color: '#888' }}>
                   {activeTab === 'buy' ? 'You will receive' : 'You will get'}
                 </span>
-                <span style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: '#22c55e' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: '#00ff00' }}>
                   {activeTab === 'buy'
                     ? buyQuote ? `~${formatBalance(buyQuote)} ${token.symbol}` : 'Loading...'
                     : sellQuote ? `~${formatBalance(sellQuote)} PLS` : 'Loading...'
@@ -1030,13 +1194,13 @@ export function TokenDashboard() {
           {txStatus && (
             <div style={{
               padding: '12px',
-              backgroundColor: txStatus.startsWith('✅') ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-              border: `1px solid ${txStatus.startsWith('✅') ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
+              backgroundColor: txStatus.startsWith('✅') ? 'rgba(0,255,0,0.15)' : 'rgba(239,68,68,0.15)',
+              border: `1px solid ${txStatus.startsWith('✅') ? 'rgba(0,255,0,0.4)' : 'rgba(239,68,68,0.4)'}`,
               borderRadius: '8px',
               marginBottom: '12px',
               textAlign: 'center',
             }}>
-              <span style={{ fontSize: '13px', color: txStatus.startsWith('✅') ? '#22c55e' : '#ef4444' }}>
+              <span style={{ fontSize: '13px', color: txStatus.startsWith('✅') ? '#00ff00' : '#ef4444' }}>
                 {txStatus}
               </span>
             </div>
@@ -1083,19 +1247,19 @@ export function TokenDashboard() {
                   background: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote))
                     ? 'linear-gradient(135deg, #333 0%, #222 100%)'
                     : activeTab === 'buy'
-                      ? 'linear-gradient(135deg, #166534 0%, #22c55e 100%)'
+                      ? 'linear-gradient(135deg, #006600 0%, #00ff00 100%)'
                       : activeTab === 'sell'
                         ? 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)'
                         : 'linear-gradient(135deg, #9a3412 0%, #f97316 100%)',
                   border: 'none',
-                  color: '#fff',
+                  color: activeTab === 'buy' ? '#000' : '#fff',
                   fontWeight: 700,
                   fontSize: '14px',
                   textTransform: 'uppercase',
                   cursor: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote)) ? 'not-allowed' : 'pointer',
                   boxShadow: (!amount || isPending || isConfirming || (activeTab === 'buy' && !buyQuote) || (activeTab === 'sell' && !sellQuote))
                     ? 'none'
-                    : `0 0 20px ${activeTab === 'buy' ? 'rgba(34,197,94,0.4)' : activeTab === 'sell' ? 'rgba(239,68,68,0.4)' : 'rgba(249,115,22,0.4)'}`,
+                    : `0 0 20px ${activeTab === 'buy' ? 'rgba(0,255,0,0.5)' : activeTab === 'sell' ? 'rgba(239,68,68,0.4)' : 'rgba(249,115,22,0.4)'}`,
                 }}
               >
                 {isPending || isConfirming ? '⏳ Processing...'
@@ -1114,7 +1278,7 @@ export function TokenDashboard() {
               padding: '16px',
               backgroundColor: '#252525',
               borderRadius: '10px',
-              border: '1px dashed #3a3a3a',
+              border: '1px dashed rgba(0,255,0,0.3)',
             }}>
               <span style={{ fontSize: '12px', color: '#666' }}>Connect wallet to trade</span>
               <ConnectButton />
@@ -1143,13 +1307,13 @@ export function TokenDashboard() {
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: 'monospace',
-                  color: theme.primary,
+                  color: '#00ff00',
                   fontSize: '11px',
                   padding: '4px 8px',
                   borderRadius: '4px',
                   transition: 'background 0.2s',
                 }}
-                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,255,0,0.1)'}
                 onMouseOut={(e) => e.currentTarget.style.background = 'none'}
                 title="Click to copy full address"
               >
@@ -1158,7 +1322,56 @@ export function TokenDashboard() {
             </div>
           </div>
         </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            ROW 2 - Transaction Feed (50%) + Message Board (50%)
+            ═══════════════════════════════════════════════════════════════════ */}
+        <div style={{
+          display: 'flex',
+          gap: '16px',
+          minHeight: '400px',
+        }}>
+          {/* LEFT - Transaction Feed (50%) */}
+          <div style={{
+            flex: 1,
+            minWidth: 0,
+          }}>
+            <TransactionFeed
+              tokenAddress={tokenAddress as `0x${string}`}
+              tokenSymbol={token.symbol}
+              reserveBalance={token.reserveBalance}
+              tokensSold={token.tokensSold}
+            />
+          </div>
+
+          {/* RIGHT - Message Board (50%) */}
+          <div style={{
+            flex: 1,
+            minWidth: 0,
+            backgroundColor: 'rgba(26,26,26,0.9)',
+            borderRadius: '12px',
+            border: '1px solid rgba(0,255,0,0.1)',
+            overflow: 'hidden',
+            backdropFilter: 'blur(5px)',
+          }}>
+            <MessageBoard
+              tokenSymbol={token.symbol}
+              holderPercentage={holderPercentage}
+              primaryColor={theme.primary}
+              secondaryColor={theme.secondary}
+            />
+          </div>
+        </div>
       </main>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   )
 }

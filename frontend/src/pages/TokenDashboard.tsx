@@ -8,7 +8,9 @@ import { CandlestickChart } from '../components/CandlestickChart'
 import { TransactionFeed } from '../components/TransactionFeed'
 import { MessageBoard } from '../components/MessageBoard'
 import { DraggableResizableBox } from '../components/ui/DraggableResizableBox'
+import { FrameSelector } from '../components/ui/FrameSelector'
 import { useLayout } from '../context/LayoutContext'
+import { useCustomFrames } from '../hooks/useCustomFrames'
 
 interface SocialLinks {
   twitter?: string
@@ -136,6 +138,14 @@ export function TokenDashboard() {
     bringToFront,
     isLoaded,
   } = useLayout()
+
+  // RALPH RL-005: Custom frames for draggable boxes
+  const {
+    frames,
+    addFrame,
+    assignFrameToBox,
+    getBoxFrame,
+  } = useCustomFrames()
 
   const tokenAddress = tokenIdParam as `0x${string}` | undefined
   const refParam = searchParams.get('ref')
@@ -854,6 +864,19 @@ export function TokenDashboard() {
                 console.log('[RALPH RL-004] Chart box brought to front')
               }}
               title="📊 PRICE CHART"
+              frameConfig={getBoxFrame('chart-box')}
+              frameSelector={
+                <FrameSelector
+                  frames={frames}
+                  selectedFrameId={getBoxFrame('chart-box')?.id || null}
+                  onSelect={(frameId) => {
+                    assignFrameToBox('chart-box', frameId)
+                    console.log('[RALPH RL-005] Chart box frame assigned:', frameId)
+                  }}
+                  onAddFrame={addFrame}
+                  boxId="chart-box"
+                />
+              }
             >
               <div style={{ padding: '12px', height: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Livestream Embed - Shows when creator has livestream URL */}
@@ -986,6 +1009,19 @@ export function TokenDashboard() {
                 console.log('[RALPH RL-004] Trade panel brought to front')
               }}
               title={`💱 TRADE ${token.symbol}`}
+              frameConfig={getBoxFrame('swapper-box')}
+              frameSelector={
+                <FrameSelector
+                  frames={frames}
+                  selectedFrameId={getBoxFrame('swapper-box')?.id || null}
+                  onSelect={(frameId) => {
+                    assignFrameToBox('swapper-box', frameId)
+                    console.log('[RALPH RL-005] Swapper box frame assigned:', frameId)
+                  }}
+                  onAddFrame={addFrame}
+                  boxId="swapper-box"
+                />
+              }
             >
               <div style={{ padding: '16px', height: '100%', overflow: 'auto' }}>
                 {/* Buy/Sell/Burn Tabs */}
@@ -1372,6 +1408,19 @@ export function TokenDashboard() {
                 console.log('[RALPH RL-004] Transaction feed brought to front')
               }}
               title="📈 TRANSACTION FEED"
+              frameConfig={getBoxFrame('transaction-feed-box')}
+              frameSelector={
+                <FrameSelector
+                  frames={frames}
+                  selectedFrameId={getBoxFrame('transaction-feed-box')?.id || null}
+                  onSelect={(frameId) => {
+                    assignFrameToBox('transaction-feed-box', frameId)
+                    console.log('[RALPH RL-005] Transaction feed frame assigned:', frameId)
+                  }}
+                  onAddFrame={addFrame}
+                  boxId="transaction-feed-box"
+                />
+              }
             >
               <div style={{ height: '100%' }}>
                 <TransactionFeed
@@ -1406,6 +1455,19 @@ export function TokenDashboard() {
                 console.log('[RALPH RL-004] Message board brought to front')
               }}
               title="💬 MESSAGE BOARD"
+              frameConfig={getBoxFrame('message-board-box')}
+              frameSelector={
+                <FrameSelector
+                  frames={frames}
+                  selectedFrameId={getBoxFrame('message-board-box')?.id || null}
+                  onSelect={(frameId) => {
+                    assignFrameToBox('message-board-box', frameId)
+                    console.log('[RALPH RL-005] Message board frame assigned:', frameId)
+                  }}
+                  onAddFrame={addFrame}
+                  boxId="message-board-box"
+                />
+              }
             >
               <div style={{ height: '100%' }}>
                 <MessageBoard

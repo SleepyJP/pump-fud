@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { Resizable } from 're-resizable'
 import { useDraggable, type Position } from '../../hooks/useDraggable'
 import { useResizable, type Size } from '../../hooks/useResizable'
+import type { FrameConfig } from '../../hooks/useCustomFrames'
 
 export interface DraggableResizableBoxProps {
   id: string
@@ -18,6 +19,9 @@ export interface DraggableResizableBoxProps {
   headerContent?: ReactNode
   disabled?: boolean
   style?: React.CSSProperties
+  // RL-005: Custom frame support
+  frameConfig?: FrameConfig | null
+  frameSelector?: ReactNode
 }
 
 export function DraggableResizableBox({
@@ -35,6 +39,9 @@ export function DraggableResizableBox({
   headerContent,
   disabled = false,
   style,
+  // RL-005: Custom frame support
+  frameConfig,
+  frameSelector,
 }: DraggableResizableBoxProps) {
   const [isHovered, setIsHovered] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
@@ -188,14 +195,24 @@ export function DraggableResizableBox({
         }}
         style={{
           backgroundColor: 'rgba(26,26,26,0.95)',
-          border: `1px solid ${isDragging || isResizing ? 'rgba(0,255,0,0.5)' : 'rgba(0,255,0,0.15)'}`,
-          borderRadius: '12px',
-          boxShadow: isDragging || isResizing
-            ? '0 8px 32px rgba(0,255,0,0.2), 0 0 0 1px rgba(0,255,0,0.3)'
-            : '0 4px 16px rgba(0,0,0,0.4)',
+          border: frameConfig
+            ? `${frameConfig.borderWidth}px solid ${frameConfig.glowColor || '#00ff00'}`
+            : `1px solid ${isDragging || isResizing ? 'rgba(0,255,0,0.5)' : 'rgba(0,255,0,0.15)'}`,
+          borderRadius: frameConfig ? `${frameConfig.borderRadius}px` : '12px',
+          boxShadow: frameConfig
+            ? `0 0 ${20 * (frameConfig.glowIntensity || 0.4)}px ${frameConfig.glowColor || '#00ff00'}, 0 8px 32px rgba(0,0,0,0.4)`
+            : isDragging || isResizing
+              ? '0 8px 32px rgba(0,255,0,0.2), 0 0 0 1px rgba(0,255,0,0.3)'
+              : '0 4px 16px rgba(0,0,0,0.4)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          // RL-005: Apply frame background image if present
+          ...(frameConfig?.imageUrl.startsWith('data:') && {
+            backgroundImage: `url(${frameConfig.imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }),
         }}
       >
         {/* Drag Handle Header */}
@@ -238,7 +255,11 @@ export function DraggableResizableBox({
                 </span>
               </div>
             )}
-            {headerContent}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* RL-005: Frame selector */}
+              {frameSelector}
+              {headerContent}
+            </div>
           </div>
         )}
 

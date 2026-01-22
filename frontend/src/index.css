@@ -13,11 +13,11 @@
   --shadow: #1a1a1f;
   --bone: #2a2a30;
 
-  /* BLOOD & HELLFIRE */
-  --blood: #8B0000;
-  --crimson: #DC143C;
-  --hellfire: #FF2400;
-  --ember: #FF4500;
+  /* NEON GREEN (legacy vars for compat) */
+  --blood: #005500;
+  --crimson: #00cc00;
+  --hellfire: #00ff00;
+  --ember: #33ff33;
 
   /* TOXIC & RADIOACTIVE */
   --toxic: #39FF14;

@@ -103,7 +103,7 @@ export function MessageBoardPopup() {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({ accentColor: '#dc143c' })}>
+        <RainbowKitProvider theme={darkTheme({ accentColor: '#00ff00' })}>
           <MessageBoardContent />
         </RainbowKitProvider>
       </QueryClientProvider>

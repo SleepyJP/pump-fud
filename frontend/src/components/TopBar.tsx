@@ -28,7 +28,7 @@ export function TopBar() {
         left: 0,
         right: 0,
         height: '2px',
-        background: 'linear-gradient(90deg, transparent 0%, #DC143C 20%, #8B5CF6 50%, #DC143C 80%, transparent 100%)',
+        background: 'linear-gradient(90deg, transparent 0%, #00ff00 20%, #8B5CF6 50%, #00ff00 80%, transparent 100%)',
       }} />
 
       {/* Gothic ornament left */}
@@ -58,7 +58,7 @@ export function TopBar() {
           style={{
             width: '100%',
             backgroundColor: searchFocused ? 'rgba(30,30,36,0.9)' : 'rgba(20,20,26,0.8)',
-            border: searchFocused ? '1px solid rgba(220,20,60,0.4)' : '1px solid rgba(42,42,48,0.8)',
+            border: searchFocused ? '1px solid rgba(0,255,0,0.4)' : '1px solid rgba(42,42,48,0.8)',
             borderRadius: '8px',
             padding: '10px 14px 10px 40px',
             fontSize: '13px',
@@ -68,7 +68,7 @@ export function TopBar() {
             letterSpacing: '0.03em',
             transition: 'all 0.3s ease',
             boxShadow: searchFocused
-              ? '0 0 20px rgba(220,20,60,0.15), inset 0 0 10px rgba(0,0,0,0.3)'
+              ? '0 0 20px rgba(0,255,0,0.15), inset 0 0 10px rgba(0,0,0,0.3)'
               : 'inset 0 0 10px rgba(0,0,0,0.3)',
           }}
         />
@@ -77,7 +77,7 @@ export function TopBar() {
           left: '14px',
           top: '50%',
           transform: 'translateY(-50%)',
-          color: searchFocused ? '#DC143C' : '#555',
+          color: searchFocused ? '#00ff00' : '#555',
           fontSize: '14px',
           transition: 'color 0.3s ease',
         }}>
@@ -90,7 +90,7 @@ export function TopBar() {
             position: 'absolute',
             inset: '-2px',
             borderRadius: '10px',
-            background: 'linear-gradient(90deg, rgba(220,20,60,0.2), rgba(139,92,246,0.2), rgba(220,20,60,0.2))',
+            background: 'linear-gradient(90deg, rgba(0,255,0,0.2), rgba(139,92,246,0.2), rgba(0,255,0,0.2))',
             zIndex: -1,
             animation: 'spectralShimmer 2s linear infinite',
           }} />
@@ -103,22 +103,22 @@ export function TopBar() {
         alignItems: 'center',
         gap: '8px',
         padding: '6px 16px',
-        background: 'rgba(139,0,0,0.15)',
+        background: 'rgba(0,100,0,0.15)',
         borderRadius: '20px',
-        border: '1px solid rgba(220,20,60,0.2)',
+        border: '1px solid rgba(0,255,0,0.2)',
       }}>
         <div style={{
           width: '8px',
           height: '8px',
           borderRadius: '50%',
-          backgroundColor: '#DC143C',
+          backgroundColor: '#00ff00',
           animation: 'candleFlicker 1s ease-in-out infinite',
-          boxShadow: '0 0 8px #DC143C',
+          boxShadow: '0 0 8px #00ff00',
         }} />
         <span style={{
           fontFamily: 'Cinzel, serif',
           fontSize: '11px',
-          color: '#DC143C',
+          color: '#00ff00',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
         }}>
@@ -137,9 +137,9 @@ export function TopBar() {
             gap: '8px',
             padding: '10px 18px',
             borderRadius: '8px',
-            background: 'linear-gradient(135deg, rgba(139,0,0,0.3) 0%, rgba(220,20,60,0.2) 100%)',
-            border: '1px solid rgba(220,20,60,0.4)',
-            color: '#DC143C',
+            background: 'linear-gradient(135deg, rgba(0,100,0,0.3) 0%, rgba(0,255,0,0.2) 100%)',
+            border: '1px solid rgba(0,255,0,0.4)',
+            color: '#00ff00',
             fontFamily: 'Cinzel, serif',
             fontWeight: 600,
             fontSize: '12px',
@@ -147,7 +147,7 @@ export function TopBar() {
             textTransform: 'uppercase',
             textDecoration: 'none',
             transition: 'all 0.3s ease',
-            boxShadow: '0 0 15px rgba(220,20,60,0.1)',
+            boxShadow: '0 0 15px rgba(0,255,0,0.1)',
           }}
         >
           <span style={{ fontSize: '14px' }}>🩸</span>

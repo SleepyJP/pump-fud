@@ -217,7 +217,7 @@ export function LeaderboardPage() {
             style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
           >
             <span style={{ fontSize: '28px' }}>🔥</span>
-            <span style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: '#dc143c', letterSpacing: '0.1em' }}>
+            <span style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: '#00ff00', letterSpacing: '0.1em', textShadow: '0 0 10px rgba(0,255,0,0.5)' }}>
               PUMP.FUD
             </span>
           </div>

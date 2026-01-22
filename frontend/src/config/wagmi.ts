@@ -244,6 +244,13 @@ export const PUMP_FUD_ABI = [
   { name: 'buyFeeBps', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
   { name: 'sellFeeBps', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
   { name: 'feeWhitelist', type: 'function', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'bool' }] },
+  // RL-008: Fee routing verification functions
+  { name: 'BUY_FEE_BPS', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'SELL_FEE_BPS', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'CREATION_FEE', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'TREASURY', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
+  { name: 'creationFee', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'treasury', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
 ] as const
 
 // ABI for PumpFudLeaderboard contract

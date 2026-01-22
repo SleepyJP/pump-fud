@@ -10,6 +10,7 @@ import { MessageBoard } from '../components/MessageBoard'
 import { DraggableResizableBox } from '../components/ui/DraggableResizableBox'
 import { FrameSelector } from '../components/ui/FrameSelector'
 import { SharedUIManager } from '../components/ui/SharedUIManager'
+import { FeeVerification } from '../components/ui/FeeVerification'
 import { useLayout } from '../context/LayoutContext'
 import { useCustomFrames } from '../hooks/useCustomFrames'
 
@@ -656,6 +657,11 @@ export function TokenDashboard() {
 
           {/* RL-006: Shared UI Manager */}
           <SharedUIManager />
+
+          {/* RL-008: Fee Routing Verification */}
+          <div style={{ position: 'relative' }}>
+            <FeeVerification />
+          </div>
 
           <ConnectButton />
         </div>
